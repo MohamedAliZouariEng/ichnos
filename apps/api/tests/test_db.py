@@ -23,7 +23,7 @@ def settings() -> Settings:
 
 def test_migrations_create_all_tables(settings: Settings) -> None:
     tables = set(inspect(make_engine(settings)).get_table_names())
-    assert EXPECTED_TABLES <= tables
+    assert tables >= EXPECTED_TABLES
     assert "alembic_version" in tables
 
 
