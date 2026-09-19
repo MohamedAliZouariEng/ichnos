@@ -7,12 +7,14 @@ import { api } from "../../api";
 import { UNREACHABLE, detailOf } from "../../labels";
 import { StatusBadge } from "../runs/StatusBadge";
 import { citations, splitFrontmatter } from "./markdown";
+import { VersionDiff } from "./VersionDiff";
 
-type Tab = "preview" | "edit" | "versions";
+type Tab = "preview" | "edit" | "versions" | "changes";
 const TABS: { id: Tab; label: string }[] = [
   { id: "preview", label: "Preview" },
   { id: "edit", label: "Edit" },
   { id: "versions", label: "Versions" },
+  { id: "changes", label: "Changes" },
 ];
 
 function Findings({ findings }: { findings: Finding[] }) {
@@ -281,6 +283,9 @@ export function ArtifactReview({ artifactId, onBack, validateDelayMs = 600 }: Pr
             </div>
           )}
 
+          {tab === "changes" && (
+            <VersionDiff artifactId={artifactId} versions={artifact.versions} current={current} />
+          )}
           {tab === "versions" && (
             <div className="table-wrap">
               <table className="table">
