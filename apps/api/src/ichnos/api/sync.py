@@ -9,7 +9,8 @@ from sqlalchemy import select
 
 from ichnos.api.deps import SessionDep, SettingsDep
 from ichnos.api.workspaces import LOCAL_ACTOR, NOT_FOUND, get_workspace_or_404
-from ichnos.db.models import Document, Run
+from ichnos.db.base import as_utc
+from ichnos.db.models import Document, GitHubItem, Run
 from ichnos.github.reader import GitHubReader
 from ichnos.sync.service import SyncInProgress, run_sync
 
@@ -54,8 +55,8 @@ def _run_read(run: Run) -> SyncRunRead:
         error=run.error,
         counts=dict(outputs.get("counts", {})),
         requests=outputs.get("requests"),
-        created_at=run.created_at,
-        finished_at=run.finished_at,
+        created_at=as_utc(run.created_at),
+        finished_at=None if run.finished_at is None else as_utc(run.finished_at),
     )
 
 
@@ -135,4 +136,45 @@ def list_documents(workspace_id: str, session: SessionDep) -> list[DocumentSumma
             commit_sha=doc.commit_sha,
         )
         for doc in documents
+    ]
+
+
+class GitHubItemSummary(BaseModel):
+    number: int
+    type: str
+    title: str
+    state: str
+    author: str | None
+    labels: list[str]
+    url: str
+    updated_at: dt.datetime
+    merged_at: dt.datetime | None
+
+
+@router.get(
+    "/github/items",
+    response_model=list[GitHubItemSummary],
+    operation_id="listGitHubItems",
+    responses=NOT_FOUND,
+)
+def list_github_items(workspace_id: str, session: SessionDep) -> list[GitHubItemSummary]:
+    get_workspace_or_404(session, workspace_id)
+    items = session.scalars(
+        select(GitHubItem)
+        .where(GitHubItem.workspace_id == workspace_id)
+        .order_by(GitHubItem.number.desc())
+    ).all()
+    return [
+        GitHubItemSummary(
+            number=item.number,
+            type=item.item_type,
+            title=item.title,
+            state=item.state,
+            author=item.author,
+            labels=list(item.labels or []),
+            url=item.url,
+            updated_at=as_utc(item.updated_at),
+            merged_at=None if item.merged_at is None else as_utc(item.merged_at),
+        )
+        for item in items
     ]

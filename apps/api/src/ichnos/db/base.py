@@ -34,3 +34,8 @@ def include_object(
 ) -> bool:
     """Hide objects Alembic cannot model: the FTS5 table and its shadow tables (ADR-0008)."""
     return not (type_ == "table" and name is not None and name.startswith("chunks_fts"))
+
+
+def as_utc(value: dt.datetime) -> dt.datetime:
+    """SQLite returns naive datetimes; Ichnos always stores UTC, so attach the zone."""
+    return value if value.tzinfo is not None else value.replace(tzinfo=dt.UTC)

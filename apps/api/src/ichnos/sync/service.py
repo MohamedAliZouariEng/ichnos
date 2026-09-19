@@ -11,11 +11,17 @@ from ichnos.db.base import new_id, utc_now
 from ichnos.db.models import AuditEvent, Run, Workspace
 from ichnos.github.reader import GitHubError, GitHubReader
 from ichnos.sync.documents import sync_documents
+from ichnos.sync.history import sync_comments, sync_commits, sync_issues
 
 logger = logging.getLogger(__name__)
 
 Stage = Callable[[Session, GitHubReader, Workspace], dict[str, int]]
-STAGES: list[tuple[str, Stage]] = [("documents", sync_documents)]
+STAGES: list[tuple[str, Stage]] = [
+    ("documents", sync_documents),
+    ("issues", sync_issues),
+    ("comments", sync_comments),
+    ("commits", sync_commits),
+]
 STALE_AFTER = dt.timedelta(minutes=30)
 
 

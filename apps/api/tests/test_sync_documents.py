@@ -63,11 +63,17 @@ def _sync(client: TestClient, workspace_id: str) -> dict[str, object]:
     return run
 
 
+def _documents(run: dict[str, object]) -> dict[str, int]:
+    counts = run["counts"]
+    assert isinstance(counts, dict)
+    return {key: value for key, value in counts.items() if key.startswith("documents_")}
+
+
 def test_first_sync_imports_selected_documents(client: TestClient) -> None:
     workspace_id = _workspace(client)
     run = _sync(client, workspace_id)
     assert run["status"] == "succeeded", run
-    assert run["counts"] == {
+    assert _documents(run) == {
         "documents_added": 4,
         "documents_updated": 0,
         "documents_deleted": 0,
@@ -92,14 +98,15 @@ def test_second_sync_without_changes_is_one_request(client: TestClient, github: 
     _sync(client, workspace_id)
     before = len(github.requests)
     run = _sync(client, workspace_id)
-    assert run["counts"] == {
+    assert _documents(run) == {
         "documents_added": 0,
         "documents_updated": 0,
         "documents_deleted": 0,
         "documents_unchanged": 4,
         "documents_skipped": 0,
     }
-    assert github.requests[before:] == ["/repos/octo-org/quire-demo/branches/main"]
+    file_requests = [p for p in github.requests[before:] if "/git/" in p or "/branches/" in p]
+    assert file_requests == ["/repos/octo-org/quire-demo/branches/main"]
     assert len(client.get(f"/api/workspaces/{workspace_id}/documents").json()) == 4
 
 
@@ -113,7 +120,7 @@ def test_changes_are_applied_incrementally(client: TestClient, github: FakeGitHu
 
     run = _sync(client, workspace_id)
 
-    assert run["counts"] == {
+    assert _documents(run) == {
         "documents_added": 1,
         "documents_updated": 1,
         "documents_deleted": 1,
