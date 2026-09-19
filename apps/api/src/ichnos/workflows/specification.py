@@ -136,11 +136,17 @@ def index_entries(
 ) -> list[dict[str, str]]:
     """The index lines written together with the BRD, so the bundle stays valid OKF."""
     slug = path.split("/")[2]
+    # A spec folder has its own index; the parent index lists the folder through it.
     entries = [
         {
             "index": "docs/specs/index.md",
-            "entry": f"* [{_text(title)}]({slug}/brd.md) - {description}",
-        }
+            "entry": f"* [{_text(title)}]({slug}/index.md) - {description}",
+        },
+        {
+            "index": f"docs/specs/{slug}/index.md",
+            "heading": _text(title),
+            "entry": f"* [Business requirements](brd.md) - {description}",
+        },
     ]
     for note_path, note_title in notes:
         folder, name = note_path.rsplit("/", 1)
