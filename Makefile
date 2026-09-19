@@ -121,3 +121,8 @@ demo-check: ## Validate the demo repository's docs/ as an OKF v0.2 bundle (stric
 > uv run --no-project --with-requirements scripts/requirements-docs.txt python scripts/validate_okf.py examples/demo-repository/docs --strict
 
 check: demo-check
+
+# ---- End to end ----
+.PHONY: e2e
+e2e: ## Check the Phase 2 exit criteria against the running stack (make up) and real GitHub
+> python3 scripts/e2e_sync.py
