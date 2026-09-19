@@ -4,8 +4,8 @@ title: Ichnos MVP — Technical Specification
 description: Information model, agent workflow, architecture, API, GitHub conventions and security design for the Ichnos MVP.
 tags: [ichnos, mvp, architecture, langgraph, okf]
 status: stable
-generated: { by: claude/opus-5, at: 2026-09-19T17:09:14Z }
-verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T17:09:14Z }
+generated: { by: claude/opus-5, at: 2026-09-19T19:42:04Z }
+verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T19:42:04Z }
 sources:
   - id: prd
     resource: https://docs.sylergy.net/s/documentation/p/athar-XwmmVmIjhs
@@ -37,6 +37,10 @@ Key decisions are recorded as ADRs:
 - [ADR-0008: Retrieval store: SQLite full-text search now](/adr/0008-retrieval-store-sqlite-fts.md)
 - [ADR-0009: GitHub sync strategy](/adr/0009-github-sync-strategy.md)
 - [ADR-0010: Knowledge links record origin, evidence and confidence](/adr/0010-knowledge-links-provenance.md)
+- [ADR-0011: Workflow engine](/adr/0011-workflow-engine.md)
+- [ADR-0012: Model providers](/adr/0012-model-providers.md)
+- [ADR-0013: Live run updates through Server-Sent Events](/adr/0013-live-run-updates.md)
+- [ADR-0014: Drafts and versions live in SQLite until approved](/adr/0014-drafts-and-versions.md)
 
 # Information model
 
@@ -281,14 +285,14 @@ Closes #456
 
 | Decision | Settle by | Current leaning |
 | --- | --- | --- |
-| LangGraph mandatory or behind an adapter | Phase 3 | Mandatory, thin adapter interface |
+| LangGraph mandatory or behind an adapter | Phase 3 | Decided: LangGraph, nodes as plain functions ([ADR-0011](/adr/0011-workflow-engine.md)) |
 | Default retrieval store | Phase 2 | Decided: SQLite FTS5 now, embeddings in Phase 3 ([ADR-0008](/adr/0008-retrieval-store-sqlite-fts.md)) |
-| Run updates: polling, SSE or WebSockets | Phase 3 | SSE |
+| Run updates: polling, SSE or WebSockets | Phase 3 | Decided: SSE with a persisted event log ([ADR-0013](/adr/0013-live-run-updates.md)) |
 | GitHub OAuth, PAT or both | Phase 1 | Decided: fine-grained PAT ([ADR-0004](/adr/0004-github-access-fine-grained-pat.md)) |
 | Ollama in Docker Compose | Phase 1 | Decided: optional profile ([ADR-0006](/adr/0006-ollama-optional-compose-profile.md)) |
 | Slack in first release | Phase 4 | Later adapter |
 | One or many repositories per workspace | Phase 1 | Decided: one ([ADR-0005](/adr/0005-one-repository-per-workspace.md)) |
-| Format of browser-edited drafts | Phase 3 | SQLite until approved, then OKF Markdown |
+| Format of browser-edited drafts | Phase 3 | Decided: versions in SQLite until approved ([ADR-0014](/adr/0014-drafts-and-versions.md)) |
 
 [^brd]: Ichnos MVP — Business Requirements
 [^prd]: Product Requirements Document v0.1
