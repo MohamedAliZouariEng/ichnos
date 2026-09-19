@@ -2,6 +2,7 @@ import { type FormEvent, useEffect, useState } from "react";
 import type { GitHubAccess, ServerConfig, Workspace, WorkspaceCreate } from "@ichnos/api-client";
 
 import { api } from "../../api";
+import { ModelNotice } from "../../components/ModelNotice";
 
 type FormState = {
   name: string;
@@ -306,8 +307,9 @@ export function WorkspacePanel({ workspaceId, onSaved }: WorkspacePanelProps = {
         <fieldset className="fieldset">
           <legend>Models</legend>
           <p className="hint">
-            Optional. Leave empty to use the server defaults. Model calls start in Phase 3.
+            Optional. Leave empty to use the server’s model for this workspace.
           </p>
+          <ModelNotice config={config} />
           <div className="fieldset__grid">
             <Field
               id="llmProvider"

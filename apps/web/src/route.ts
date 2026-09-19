@@ -1,18 +1,34 @@
 import { useCallback, useEffect, useState } from "react";
 
-export type Section = "workspace" | "inbox" | "github";
-export type Route = { section: Section; doc?: string | undefined };
+export type Section = "workspace" | "inbox" | "github" | "runs" | "artifacts";
+export type Route = {
+  section: Section;
+  doc?: string | undefined;
+  run?: string | undefined;
+  artifact?: string | undefined;
+};
+
+const SECTIONS: readonly Section[] = ["workspace", "inbox", "github", "runs", "artifacts"];
 
 export function parseRoute(hash: string): Route {
   const [name = "", query = ""] = hash.replace(/^#\/?/, "").split("?");
-  const section: Section = name === "inbox" || name === "github" ? name : "workspace";
-  const doc = new URLSearchParams(query).get("doc") ?? undefined;
-  return { section, doc };
+  const section = SECTIONS.includes(name as Section) ? (name as Section) : "workspace";
+  const params = new URLSearchParams(query);
+  return {
+    section,
+    doc: params.get("doc") ?? undefined,
+    run: params.get("run") ?? undefined,
+    artifact: params.get("artifact") ?? undefined,
+  };
 }
 
 export function routeHash(route: Route): string {
-  const query = route.doc ? `?doc=${encodeURIComponent(route.doc)}` : "";
-  return `#/${route.section}${query}`;
+  const params = new URLSearchParams();
+  if (route.doc) params.set("doc", route.doc);
+  if (route.run) params.set("run", route.run);
+  if (route.artifact) params.set("artifact", route.artifact);
+  const query = params.toString();
+  return `#/${route.section}${query ? `?${query}` : ""}`;
 }
 
 /** The current route, kept in the URL hash so a reload returns to the same place. */

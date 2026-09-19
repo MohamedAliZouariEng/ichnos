@@ -4,8 +4,8 @@ title: Self-hosting Ichnos
 description: Run Ichnos with Docker Compose, connect GitHub with a read-only token, and back up, upgrade and troubleshoot an installation.
 tags: [self-hosting, docker, operations, security]
 status: stable
-generated: { by: claude/opus-5, at: 2026-09-19T17:09:14Z }
-verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T17:09:14Z }
+generated: { by: claude/opus-5, at: 2026-09-19T21:11:24Z }
+verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T21:11:24Z }
 sources:
   - id: adr-0004
     resource: /adr/0004-github-access-fine-grained-pat.md
@@ -56,6 +56,32 @@ Everything a sync stores is derived from GitHub. To rebuild it from scratch, res
 ```bash
 curl -X DELETE http://127.0.0.1:8765/api/workspaces/<workspace-id>/knowledge
 ```
+
+# Configure a model
+
+Workflows call a language model through any OpenAI-compatible API (ADR-0012). Set these in `.env`, then restart with `make up`:
+
+```bash
+ICHNOS_LLM_PROVIDER=openai-compatible
+ICHNOS_LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
+ICHNOS_LLM_MODEL=gemini-3.8-flash
+ICHNOS_LLM_API_KEY=your-key
+```
+
+The same settings point at OpenAI, OpenRouter, Groq or a local Ollama (`http://ollama:11434/v1` with `--profile ollama`, and no key). `ICHNOS_LLM_REASONING_EFFORT` defaults to `low`, which keeps hidden reasoning tokens down; set it to `off` for models that reject the parameter. A workspace can override the model name in its settings.
+
+Open **Workspace** and select **Check model**: one small structured call proves the model answers in the expected format. Not every model a key lists supports chat completions.
+
+When a workflow runs, the meeting note and the repository content it retrieves are sent to the model provider, and the UI says so whenever the provider is not on this machine. Check the provider's terms for your tier before using private repositories.
+
+# Draft and review a BRD
+
+1. Sync the workspace (**Inbox**, then **Sync now**) and open **Workflow runs**.
+2. Choose a synced meeting note, paste text or upload a `.md` or `.txt` file, and select **Draft BRD**. The run shows its stages live: retrieval, requirements and specification.
+3. Select **Review draft**. Every requirement cites its source; statements the sources do not support become assumptions or open questions.
+4. Edit the draft in **Edit**, save it as a new version, and compare versions in **Changes**.
+
+Drafts stay in the Ichnos database until they are approved, which arrives in Phase 4; nothing is written to GitHub before then (ADR-0014). Back up the data volume while drafts are under review.
 
 # Configuration
 
@@ -112,6 +138,9 @@ docker compose up --build --wait
 | GitHub check: "repository not found" | The token does not include that repository, or the name is wrong |
 | Sync failed: "Rate limit reached" | Wait until the time in the message; later syncs cost far fewer requests |
 | Sync failed: "Not Found" | The token cannot read the repository, or the branch does not exist; select **Check GitHub access** |
+| Model check: "only supports Interactions API" | That model does not offer chat completions; choose another from the provider's list |
+| Run failed: "HTTP 429" | The provider's rate limit; wait, then start the run again |
+| Run shows `interrupted` | The API stopped during the run; start it again |
 
 [^adr-0004]: ADR-0004: GitHub access through a fine-grained personal access token
 [^adr-0006]: ADR-0006: Ollama as an optional Docker Compose profile

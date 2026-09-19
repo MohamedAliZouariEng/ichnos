@@ -124,5 +124,7 @@ check: demo-check
 
 # ---- End to end ----
 .PHONY: e2e
-e2e: ## Check the Phase 2 exit criteria against the running stack (make up) and real GitHub
+e2e: ## Check the Phase 2 and 3 exit criteria against the running stack (make up)
 > python3 scripts/e2e_sync.py
+> python3 scripts/e2e_requirements.py --bundle /tmp/ichnos-e2e-bundle
+> uv run --no-project --with-requirements scripts/requirements-docs.txt python scripts/validate_okf.py /tmp/ichnos-e2e-bundle --strict

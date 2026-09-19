@@ -3,20 +3,22 @@ import { useState } from "react";
 import { HealthBadge } from "./components/HealthBadge";
 import { WorkspaceSwitcher } from "./components/WorkspaceSwitcher";
 import { GitHubPanel } from "./features/github/GitHubPanel";
+import { ArtifactsPanel } from "./features/artifacts/ArtifactsPanel";
 import { InboxPanel } from "./features/inbox/InboxPanel";
+import { RunsPanel } from "./features/runs/RunsPanel";
 import { WorkspacePanel } from "./features/workspace/WorkspacePanel";
 import { type Section, useRoute } from "./route";
 import { useWorkspaces } from "./workspaces";
 
-const CURRENT_PHASE = 2;
+const CURRENT_PHASE = 3;
 
 // Ordered the way work flows through Ichnos; each section names the phase that delivers it.
 const SECTIONS: { id: string; section?: Section; label: string; phase: number }[] = [
   { id: "workspace", section: "workspace", label: "Workspace", phase: 1 },
   { id: "inbox", section: "inbox", label: "Inbox", phase: 2 },
   { id: "github", section: "github", label: "GitHub context", phase: 2 },
-  { id: "runs", label: "Workflow runs", phase: 3 },
-  { id: "artifacts", label: "Artifacts", phase: 3 },
+  { id: "runs", section: "runs", label: "Workflow runs", phase: 3 },
+  { id: "artifacts", section: "artifacts", label: "Artifacts", phase: 3 },
   { id: "approvals", label: "Approvals", phase: 4 },
   { id: "traceability", label: "Traceability", phase: 6 },
 ];
@@ -41,6 +43,29 @@ export function App() {
           documentPath={route.doc}
           onOpenDocument={(path) => navigate({ section: "inbox", doc: path })}
           onCloseDocument={() => navigate({ section: "inbox" })}
+        />
+      );
+    }
+    if (section === "artifacts" && selected) {
+      return (
+        <ArtifactsPanel
+          key={selected.id}
+          workspace={selected}
+          artifactId={route.artifact}
+          onOpenArtifact={(id) => navigate({ section: "artifacts", artifact: id })}
+          onCloseArtifact={() => navigate({ section: "artifacts" })}
+        />
+      );
+    }
+    if (section === "runs" && selected) {
+      return (
+        <RunsPanel
+          key={selected.id}
+          workspace={selected}
+          runId={route.run}
+          onOpenRun={(id) => navigate({ section: "runs", run: id })}
+          onCloseRun={() => navigate({ section: "runs" })}
+          onOpenArtifact={(id) => navigate({ section: "artifacts", artifact: id })}
         />
       );
     }

@@ -29,9 +29,20 @@ class Settings(BaseSettings):
     llm_provider: str | None = None
     llm_model: str | None = None
     llm_base_url: str | None = None
+    # ADR-0012: secret like the GitHub token; "off" stops sending reasoning_effort.
+    llm_api_key: SecretStr | None = None
+    llm_reasoning_effort: str = "low"
+    llm_timeout: float = 120.0
+
+    # Workflow engine (ADR-0011).
+    workflow_workers: int = 2
     embedding_provider: str | None = None
     embedding_model: str | None = None
     embedding_base_url: str | None = None
+
+    def checkpoint_path(self) -> Path:
+        """LangGraph checkpoints live in their own file, outside Alembic (ADR-0011)."""
+        return self.data_dir.resolve() / "checkpoints.db"
 
     def sqlalchemy_url(self) -> str:
         """Database URL; defaults to a SQLite file inside data_dir."""

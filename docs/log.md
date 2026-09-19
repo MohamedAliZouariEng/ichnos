@@ -1,6 +1,10 @@
 # Documentation Update Log
 
 ## 2026-09-19
+* **Update**: Added model configuration and BRD drafting to the [self-hosting guide](/project/self-hosting.md), and offline workflows to the [development guide](/project/development.md).
+* **Update**: Aligned the [technical specification](/specs/ichnos-mvp/techspec.md) with Phase 3: layout and API scope.
+* **Creation**: Added [ADR-0011](/adr/0011-workflow-engine.md), [ADR-0012](/adr/0012-model-providers.md), [ADR-0013](/adr/0013-live-run-updates.md) and [ADR-0014](/adr/0014-drafts-and-versions.md).
+* **Update**: Settled the Phase 3 open decisions in the [technical specification](/specs/ichnos-mvp/techspec.md).
 * **Update**: Added syncing, the two databases and end-to-end checks to the [development guide](/project/development.md) and the [self-hosting guide](/project/self-hosting.md).
 * **Update**: Aligned the [technical specification](/specs/ichnos-mvp/techspec.md) with Phase 2: layout, retrieval and API scope.
 * **Creation**: Added [ADR-0008](/adr/0008-retrieval-store-sqlite-fts.md), [ADR-0009](/adr/0009-github-sync-strategy.md) and [ADR-0010](/adr/0010-knowledge-links-provenance.md).

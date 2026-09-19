@@ -4,8 +4,8 @@ title: Developing Ichnos
 description: Set up a development machine, run Ichnos locally, and follow the checks and conventions every change must pass.
 tags: [development, tooling, contributing]
 status: stable
-generated: { by: claude/opus-5, at: 2026-09-19T17:09:14Z }
-verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T17:09:14Z }
+generated: { by: claude/opus-5, at: 2026-09-19T21:11:24Z }
+verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T21:11:24Z }
 sources:
   - id: adr-0007
     resource: /adr/0007-monorepo-tooling-pnpm-uv.md
@@ -47,7 +47,7 @@ make check
 | Format and auto-fix Python | `make api-format` |
 | Regenerate the API contract after changing endpoints | `make contracts` |
 | Create a migration after changing models | `make api-migration m="describe the change"` |
-| Check the Phase 2 exit criteria against real GitHub | `make up`, then `make e2e` |
+| Check the Phase 2 and 3 exit criteria end to end | `make up`, then `make e2e` (calls your model once) |
 | Publish the Quire demo repository to your account | `scripts/publish_demo.sh` |
 
 # Rules for every change
@@ -71,6 +71,10 @@ A workspace created in one is not visible in the other. Everything a sync stores
 
 API tests never call GitHub. `tests/fake_github.py` serves repository files, Issues, pull requests, comments and commits from memory, honours `since` like GitHub does, and records every request, so tests can assert how many requests a sync made. `make e2e` is the only check that talks to real GitHub; CI runs it on every pull request with the workflow's own read-only token.
 
+# Workflows without a model
+
+Every test uses a fake model provider with deterministic answers. Set `ICHNOS_LLM_PROVIDER=fake` in `.env` to run whole workflows offline with `make dev`; CI does the same for its end-to-end check. The fake drafts requirements from a note's *Decisions* section and from sentences with *must* or *should*.
+
 # Known pitfalls
 
 - **TypeScript is pinned to 5.x.** TypeScript 7 (the native compiler) has no JavaScript compiler API yet, and `openapi-typescript` needs it. Dependabot ignores TypeScript major updates for this reason.
@@ -82,6 +86,11 @@ API tests never call GitHub. `tests/fake_github.py` serves repository files, Iss
 - **Requests appear twice in development.** React `StrictMode` runs effects twice in development builds only.
 - **Ruff formats code, not strings.** A string literal over 100 characters must be split by hand, for example as two adjacent strings inside parentheses.
 - **Ruff rejects `l` as a variable name** (E741, easily confused with `1`); use a word.
+- **Ruff's automatic fixes can create long lines** after formatting (SIM905 turns a split string into a list); run `make api-format` a second time.
+- **Avoid escaped quotes in shell one-liners**; put Python in a heredoc or a script file.
+- **Ctrl+C on `make dev` prints `ELIFECYCLE` and `ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL`**: pnpm reports the stopped dev server as failed. It is harmless.
+- **pytest lists a `langsmith` plugin.** It arrives with LangGraph and stays inert unless LangSmith environment variables are set.
+- **Text shown twice** (a stage card and the event log) must be queried with `within(...)` in tests.
 
 See the [technical specification](/specs/ichnos-mvp/techspec.md) for the architecture.[^techspec]
 

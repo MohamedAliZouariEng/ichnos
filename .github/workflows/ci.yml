@@ -81,6 +81,8 @@ jobs:
         run: |
           cp .env.example .env
           sed -i "s|^ICHNOS_GITHUB_TOKEN=.*|ICHNOS_GITHUB_TOKEN=${GH_TOKEN}|" .env
+          # The fake model provider: workflows run with no key and no model call (ADR-0012).
+          sed -i "s|^ICHNOS_LLM_PROVIDER=.*|ICHNOS_LLM_PROVIDER=fake|" .env
           docker compose up --build --detach --wait
       - name: Health check through nginx
         run: curl --fail --silent --show-error http://127.0.0.1:8765/healthz
@@ -96,6 +98,15 @@ jobs:
           curl --fail --silent --show-error http://127.0.0.1:8765/api/workspaces | grep -q '"name":"ci"'
       - name: Sync a real repository end to end (Phase 2 exit criteria)
         run: python3 scripts/e2e_sync.py --base http://127.0.0.1:8765
+      - name: Draft, validate and version a BRD end to end (Phase 3 exit criteria)
+        run: |
+          python3 scripts/e2e_requirements.py --base http://127.0.0.1:8765 \
+            --bundle /tmp/ichnos-e2e-bundle
+          # The strict validator runs inside the API image, which already has PyYAML.
+          docker compose cp /tmp/ichnos-e2e-bundle api:/tmp/ichnos-e2e-bundle
+          docker compose cp scripts/validate_okf.py api:/tmp/validate_okf.py
+          docker compose exec -T api /app/.venv/bin/python /tmp/validate_okf.py \
+            /tmp/ichnos-e2e-bundle --strict
       - name: Show logs on failure
         if: failure()
         run: docker compose logs
