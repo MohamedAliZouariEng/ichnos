@@ -550,6 +550,56 @@
         "title": "ArtifactSummary",
         "type": "object"
       },
+      "ContextPackRead": {
+        "properties": {
+          "absent": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Absent",
+            "type": "array"
+          },
+          "hash": {
+            "title": "Hash",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PackItemRead"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "keywords": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Keywords",
+            "type": "array"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "story": {
+            "title": "Story",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "story",
+          "items",
+          "absent",
+          "keywords",
+          "hash",
+          "notes"
+        ],
+        "title": "ContextPackRead",
+        "type": "object"
+      },
       "Decision": {
         "additionalProperties": false,
         "properties": {
@@ -1136,6 +1186,69 @@
           "latency_ms"
         ],
         "title": "ModelCheck",
+        "type": "object"
+      },
+      "PackItemRead": {
+        "properties": {
+          "excerpt": {
+            "title": "Excerpt",
+            "type": "string"
+          },
+          "flags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Flags",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "trust": {
+            "title": "Trust",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "title",
+          "source",
+          "url",
+          "trust",
+          "flags",
+          "reason",
+          "excerpt"
+        ],
+        "title": "PackItemRead",
         "type": "object"
       },
       "Rejection": {
@@ -4562,6 +4675,76 @@
         "summary": "Get Source",
         "tags": [
           "intake"
+        ]
+      }
+    },
+    "/api/workspaces/{workspace_id}/stories/{number}/context": {
+      "get": {
+        "description": "Everything needed to implement one Story, with provenance and trust on every item.",
+        "operationId": "getContextPack",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "title": "Number",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Fetch the selected code files' contents",
+            "in": "query",
+            "name": "code",
+            "required": false,
+            "schema": {
+              "default": true,
+              "description": "Fetch the selected code files' contents",
+              "title": "Code",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContextPackRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Workspace or Issue not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "502": {
+            "description": "GitHub could not be read"
+          }
+        },
+        "summary": "Get Context Pack",
+        "tags": [
+          "context"
         ]
       }
     },

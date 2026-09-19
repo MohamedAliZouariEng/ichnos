@@ -594,6 +594,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workspaces/{workspace_id}/stories/{number}/context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Context Pack
+         * @description Everything needed to implement one Story, with provenance and trust on every item.
+         */
+        get: operations["getContextPack"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/workspaces/{workspace_id}/sync": {
         parameters: {
             query?: never;
@@ -818,6 +838,21 @@ export interface components {
             /** Workspace Id */
             workspace_id: string;
         };
+        /** ContextPackRead */
+        ContextPackRead: {
+            /** Absent */
+            absent: string[];
+            /** Hash */
+            hash: string;
+            /** Items */
+            items: components["schemas"]["PackItemRead"][];
+            /** Keywords */
+            keywords: string[];
+            /** Notes */
+            notes: string[];
+            /** Story */
+            story: number;
+        };
         /** Decision */
         Decision: {
             /** Payload Hash */
@@ -1011,6 +1046,27 @@ export interface components {
             provider: string | null;
             /** Total Tokens */
             total_tokens: number;
+        };
+        /** PackItemRead */
+        PackItemRead: {
+            /** Excerpt */
+            excerpt: string;
+            /** Flags */
+            flags: string[];
+            /** Id */
+            id: string;
+            /** Reason */
+            reason: string;
+            /** Role */
+            role: string;
+            /** Source */
+            source: string;
+            /** Title */
+            title: string;
+            /** Trust */
+            trust: string;
+            /** Url */
+            url: string | null;
         };
         /** Rejection */
         Rejection: {
@@ -3017,6 +3073,55 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
+            };
+        };
+    };
+    getContextPack: {
+        parameters: {
+            query?: {
+                /** @description Fetch the selected code files' contents */
+                code?: boolean;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+                number: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContextPackRead"];
+                };
+            };
+            /** @description Workspace or Issue not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description GitHub could not be read */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

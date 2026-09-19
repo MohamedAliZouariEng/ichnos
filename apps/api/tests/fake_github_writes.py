@@ -96,7 +96,7 @@ class FakeGitRepo:
             return httpx.Response(200, json={"tree": {"sha": commit["tree"]}})
         if method == "GET" and route.startswith("/contents/"):
             ref = request.url.params.get("ref", "main")
-            head = self.refs.get(ref)
+            head = self.refs.get(ref) or (ref if ref in self.commits else None)
             tree = self.trees[self.commits[head]["tree"]] if head else {}
             sha = tree.get(route.removeprefix("/contents/"))
             if sha is None:
