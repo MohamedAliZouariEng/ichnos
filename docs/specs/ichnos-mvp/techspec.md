@@ -4,8 +4,8 @@ title: Ichnos MVP — Technical Specification
 description: Information model, agent workflow, architecture, API, GitHub conventions and security design for the Ichnos MVP.
 tags: [ichnos, mvp, architecture, langgraph, okf]
 status: stable
-generated: { by: claude/opus-5, at: 2026-09-19T19:42:04Z }
-verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T19:42:04Z }
+generated: { by: claude/opus-5, at: 2026-09-19T21:11:24Z }
+verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T21:11:24Z }
 sources:
   - id: prd
     resource: https://docs.sylergy.net/s/documentation/p/athar-XwmmVmIjhs
@@ -163,12 +163,15 @@ ichnos/
 ├── apps/
 │   ├── api/                     # FastAPI service; Python package `ichnos` (uv)
 │   │   ├── src/ichnos/
-│   │   │   ├── api/             # routers: health, config, workspaces, sync, knowledge
+│   │   │   ├── api/             # routers: health, config, workspaces, sync, knowledge,
+│   │   │   │                    #   intake, runs, artifacts
 │   │   │   ├── db/              # SQLAlchemy models, engine, Alembic migrations
 │   │   │   ├── github/          # read-only GitHub client and reader (ADR-0004, ADR-0009)
 │   │   │   ├── knowledge/       # link extraction and chunking (ADR-0008, ADR-0010)
+│   │   │   ├── llm/             # model providers, fake provider, preflight (ADR-0012)
 │   │   │   ├── okf/             # tolerant OKF v0.2 parser (ADR-0001)
 │   │   │   ├── sync/            # sync stages, cursors and reset (ADR-0009)
+│   │   │   ├── workflows/       # engine, retrieval, requirements, specification (ADR-0011)
 │   │   │   ├── main.py          # app factory; migrations run at startup
 │   │   │   ├── openapi.py       # contract export
 │   │   │   └── settings.py      # ICHNOS_* configuration
@@ -224,7 +227,7 @@ POST  /api/query
 GET   /api/traceability/{artifact_id}
 ```
 
-Every operation that writes to GitHub first creates a pending approval; the approval endpoint executes the exact persisted payload. Implemented so far: health and configuration (`GET /healthz`, `GET /api/config`); workspaces (`GET`/`POST /api/workspaces`, `GET`/`PATCH /api/workspaces/{workspace_id}`, `POST …/github-check`); sync (`POST …/sync`, `GET …/sync-runs`, `DELETE …/knowledge`); knowledge (`GET …/documents`, `GET …/documents/detail`, `GET …/github/items`, `GET …/links`, `GET …/search`). The committed contract is `packages/contracts/openapi.json`.
+Every operation that writes to GitHub first creates a pending approval; the approval endpoint executes the exact persisted payload. Implemented so far: health and configuration (`GET /healthz`, `GET /api/config`); workspaces (`GET`/`POST /api/workspaces`, `GET`/`PATCH /api/workspaces/{workspace_id}`, `POST …/github-check`); sync (`POST …/sync`, `GET …/sync-runs`, `DELETE …/knowledge`); knowledge (`GET …/documents`, `GET …/documents/detail`, `GET …/github/items`, `GET …/links`, `GET …/search`); models (`POST /api/config/model-check`); intake (`POST …/sources`, `POST …/sources/from-document`, `GET …/sources`); runs (`POST …/runs`, `GET …/runs`, `GET /api/runs/{run_id}`, `GET /api/runs/{run_id}/events` as Server-Sent Events); artifacts (`GET …/artifacts`, `GET /api/artifacts/{artifact_id}`, `GET`/`POST …/versions`, `POST …/validate`). The committed contract is `packages/contracts/openapi.json`.
 
 # GitHub conventions
 

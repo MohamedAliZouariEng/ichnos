@@ -6,7 +6,7 @@ A self-hosted, GitHub-native agentic SDLC workspace that turns requirements into
 
 ## Status
 
-Pre-alpha. **Phase 2 (knowledge layer and GitHub sync)** is complete: Ichnos syncs a repository's OKF documentation and GitHub history, links them with evidence, and makes them searchable in the web UI.
+Pre-alpha. **Phase 3 (requirements workflow)** is complete: from a meeting note, Ichnos drafts an OKF BRD whose every requirement cites its source, and the draft is reviewed, edited and versioned in the browser.
 
 ## Quick start
 
