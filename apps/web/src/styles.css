@@ -830,3 +830,106 @@ mark {
   font-family: var(--font-mono);
   font-size: 0.75rem;
 }
+
+/* ---- Artifact review (Phase 3) ---- */
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin: 0 0 1rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.tabs__tab {
+  padding: 0.5rem 0.9rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: none;
+  color: var(--graphite);
+  font-weight: 600;
+}
+
+.tabs__tab[aria-selected="true"] {
+  border-bottom-color: var(--trace);
+  color: var(--ink);
+}
+
+.review {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(16rem, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+@media (max-width: 60rem) {
+  .review {
+    grid-template-columns: 1fr;
+  }
+}
+
+.review__side .panel {
+  margin-bottom: 1rem;
+}
+
+.editor textarea {
+  width: 100%;
+  min-height: 32rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.editor input {
+  width: 100%;
+  margin: 0.5rem 0;
+}
+
+.preview {
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--sheet);
+}
+
+.frontmatter {
+  margin-bottom: 1rem;
+  color: var(--graphite);
+  font-size: 0.8rem;
+}
+
+.frontmatter pre {
+  overflow-x: auto;
+  font-family: var(--font-mono);
+}
+
+.markdown h1 {
+  margin-top: 1.5rem;
+  font-size: 1.3rem;
+}
+
+.markdown h2 {
+  margin-top: 1.25rem;
+  font-size: 1.05rem;
+}
+
+.markdown section[data-footnotes] {
+  margin-top: 1.5rem;
+  color: var(--graphite);
+  font-size: 0.85rem;
+}
+
+.citations {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+}
+
+.citations li {
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.citations__path {
+  display: block;
+}

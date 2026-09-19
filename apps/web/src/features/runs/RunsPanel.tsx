@@ -12,10 +12,18 @@ type Props = {
   runId?: string | undefined;
   onOpenRun: (runId: string) => void;
   onCloseRun: () => void;
+  onOpenArtifact?: ((artifactId: string) => void) | undefined;
   pollMs?: number | undefined;
 };
 
-export function RunsPanel({ workspace, runId, onOpenRun, onCloseRun, pollMs }: Props) {
+export function RunsPanel({
+  workspace,
+  runId,
+  onOpenRun,
+  onCloseRun,
+  onOpenArtifact,
+  pollMs,
+}: Props) {
   const [runs, setRuns] = useState<RunSummary[] | null>(null);
   const [failed, setFailed] = useState(false);
 
@@ -38,7 +46,16 @@ export function RunsPanel({ workspace, runId, onOpenRun, onCloseRun, pollMs }: P
     };
   }, [workspace.id, runId]);
 
-  if (runId) return <RunDetailsView runId={runId} onBack={onCloseRun} pollMs={pollMs} />;
+  if (runId) {
+    return (
+      <RunDetailsView
+        runId={runId}
+        onBack={onCloseRun}
+        onOpenArtifact={onOpenArtifact}
+        pollMs={pollMs}
+      />
+    );
+  }
 
   return (
     <section aria-labelledby="runs-title">

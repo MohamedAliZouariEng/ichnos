@@ -3,6 +3,7 @@ import { useState } from "react";
 import { HealthBadge } from "./components/HealthBadge";
 import { WorkspaceSwitcher } from "./components/WorkspaceSwitcher";
 import { GitHubPanel } from "./features/github/GitHubPanel";
+import { ArtifactsPanel } from "./features/artifacts/ArtifactsPanel";
 import { InboxPanel } from "./features/inbox/InboxPanel";
 import { RunsPanel } from "./features/runs/RunsPanel";
 import { WorkspacePanel } from "./features/workspace/WorkspacePanel";
@@ -17,7 +18,7 @@ const SECTIONS: { id: string; section?: Section; label: string; phase: number }[
   { id: "inbox", section: "inbox", label: "Inbox", phase: 2 },
   { id: "github", section: "github", label: "GitHub context", phase: 2 },
   { id: "runs", section: "runs", label: "Workflow runs", phase: 3 },
-  { id: "artifacts", label: "Artifacts", phase: 3 },
+  { id: "artifacts", section: "artifacts", label: "Artifacts", phase: 3 },
   { id: "approvals", label: "Approvals", phase: 4 },
   { id: "traceability", label: "Traceability", phase: 6 },
 ];
@@ -45,6 +46,17 @@ export function App() {
         />
       );
     }
+    if (section === "artifacts" && selected) {
+      return (
+        <ArtifactsPanel
+          key={selected.id}
+          workspace={selected}
+          artifactId={route.artifact}
+          onOpenArtifact={(id) => navigate({ section: "artifacts", artifact: id })}
+          onCloseArtifact={() => navigate({ section: "artifacts" })}
+        />
+      );
+    }
     if (section === "runs" && selected) {
       return (
         <RunsPanel
@@ -53,6 +65,7 @@ export function App() {
           runId={route.run}
           onOpenRun={(id) => navigate({ section: "runs", run: id })}
           onCloseRun={() => navigate({ section: "runs" })}
+          onOpenArtifact={(id) => navigate({ section: "artifacts", artifact: id })}
         />
       );
     }

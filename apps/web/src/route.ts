@@ -1,9 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 
-export type Section = "workspace" | "inbox" | "github" | "runs";
-export type Route = { section: Section; doc?: string | undefined; run?: string | undefined };
+export type Section = "workspace" | "inbox" | "github" | "runs" | "artifacts";
+export type Route = {
+  section: Section;
+  doc?: string | undefined;
+  run?: string | undefined;
+  artifact?: string | undefined;
+};
 
-const SECTIONS: readonly Section[] = ["workspace", "inbox", "github", "runs"];
+const SECTIONS: readonly Section[] = ["workspace", "inbox", "github", "runs", "artifacts"];
 
 export function parseRoute(hash: string): Route {
   const [name = "", query = ""] = hash.replace(/^#\/?/, "").split("?");
@@ -13,6 +18,7 @@ export function parseRoute(hash: string): Route {
     section,
     doc: params.get("doc") ?? undefined,
     run: params.get("run") ?? undefined,
+    artifact: params.get("artifact") ?? undefined,
   };
 }
 
@@ -20,6 +26,7 @@ export function routeHash(route: Route): string {
   const params = new URLSearchParams();
   if (route.doc) params.set("doc", route.doc);
   if (route.run) params.set("run", route.run);
+  if (route.artifact) params.set("artifact", route.artifact);
   const query = params.toString();
   return `#/${route.section}${query ? `?${query}` : ""}`;
 }

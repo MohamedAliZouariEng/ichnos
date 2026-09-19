@@ -28,9 +28,14 @@ function stageState(events: RunEvent[], name: string): StageState {
   return current;
 }
 
-type Props = { runId: string; onBack: () => void; pollMs?: number | undefined };
+type Props = {
+  runId: string;
+  onBack: () => void;
+  onOpenArtifact?: ((artifactId: string) => void) | undefined;
+  pollMs?: number | undefined;
+};
 
-export function RunDetailsView({ runId, onBack, pollMs = 2000 }: Props) {
+export function RunDetailsView({ runId, onBack, onOpenArtifact, pollMs = 2000 }: Props) {
   const [run, setRun] = useState<RunDetail | null>(null);
   const [events, setEvents] = useState<RunEvent[]>([]);
   const [failed, setFailed] = useState(false);
@@ -159,6 +164,11 @@ export function RunDetailsView({ runId, onBack, pollMs = 2000 }: Props) {
             <span className="path">{result.path}</span> · version {result.version ?? 1} ·{" "}
             {result.requirements ?? 0} requirements · {result.findings ?? 0} OKF findings
           </p>
+          {onOpenArtifact && (
+            <button type="button" onClick={() => onOpenArtifact(run.artifact_id ?? "")}>
+              Review draft
+            </button>
+          )}
         </section>
       )}
 
