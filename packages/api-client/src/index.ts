@@ -29,3 +29,4 @@ export type SyncRun = Schemas["SyncRunRead"];
 export type GitHubItem = Schemas["GitHubItemSummary"];
 export type KnowledgeLink = Schemas["LinkRead"];
 export type SearchHit = Schemas["SearchHit"];
+export type ModelCheck = Schemas["ModelCheck"];

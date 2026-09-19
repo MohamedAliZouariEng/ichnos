@@ -744,3 +744,16 @@ mark {
   margin-bottom: 0.75rem;
   padding: 1rem;
 }
+
+/* ---- Model disclosure (Phase 3) ---- */
+.notice--warn {
+  border-left-color: var(--warn);
+}
+
+.notice p {
+  margin: 0 0 0.5rem;
+}
+
+.notice .actions {
+  margin-top: 0.5rem;
+}

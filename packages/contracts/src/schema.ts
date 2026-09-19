@@ -21,6 +21,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/config/model-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check Model
+         * @description One tiny structured call to the configured model. Costs a few tokens.
+         */
+        post: operations["checkModel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/workspaces": {
         parameters: {
             query?: never;
@@ -466,6 +486,23 @@ export interface components {
             /** Target Kind */
             target_kind: string;
         };
+        /** ModelCheck */
+        ModelCheck: {
+            /** Latency Ms */
+            latency_ms: number;
+            /** Local */
+            local: boolean;
+            /** Message */
+            message: string;
+            /** Model */
+            model: string | null;
+            /** Ok */
+            ok: boolean;
+            /** Provider */
+            provider: string | null;
+            /** Total Tokens */
+            total_tokens: number;
+        };
         /** SearchHit */
         SearchHit: {
             /** Heading */
@@ -491,10 +528,18 @@ export interface components {
             embedding_provider: string | null;
             /** Github Token Configured */
             github_token_configured: boolean;
+            /** Llm Configured */
+            llm_configured: boolean;
+            /** Llm Host */
+            llm_host: string | null;
+            /** Llm Local */
+            llm_local: boolean;
             /** Llm Model */
             llm_model: string | null;
             /** Llm Provider */
             llm_provider: string | null;
+            /** Llm Reasoning Effort */
+            llm_reasoning_effort: string;
         };
         /** SourceCreate */
         SourceCreate: {
@@ -691,6 +736,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ServerConfig"];
+                };
+            };
+        };
+    };
+    checkModel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelCheck"];
                 };
             };
         };

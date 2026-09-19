@@ -41,6 +41,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.engine = engine
     app.state.session_factory = make_session_factory(engine)
     app.state.github_transport = None  # tests inject httpx.MockTransport here
+    app.state.llm_transport = None  # tests inject httpx.MockTransport here
     app.add_middleware(
         CORSMiddleware,
         allow_origins=config.cors_origins,

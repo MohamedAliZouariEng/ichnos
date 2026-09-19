@@ -495,6 +495,63 @@
         "title": "LinkRead",
         "type": "object"
       },
+      "ModelCheck": {
+        "properties": {
+          "latency_ms": {
+            "title": "Latency Ms",
+            "type": "integer"
+          },
+          "local": {
+            "title": "Local",
+            "type": "boolean"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "total_tokens": {
+            "title": "Total Tokens",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "ok",
+          "provider",
+          "model",
+          "local",
+          "message",
+          "total_tokens",
+          "latency_ms"
+        ],
+        "title": "ModelCheck",
+        "type": "object"
+      },
       "SearchHit": {
         "properties": {
           "heading": {
@@ -587,6 +644,25 @@
             "title": "Github Token Configured",
             "type": "boolean"
           },
+          "llm_configured": {
+            "title": "Llm Configured",
+            "type": "boolean"
+          },
+          "llm_host": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Host"
+          },
+          "llm_local": {
+            "title": "Llm Local",
+            "type": "boolean"
+          },
           "llm_model": {
             "anyOf": [
               {
@@ -608,12 +684,20 @@
               }
             ],
             "title": "Llm Provider"
+          },
+          "llm_reasoning_effort": {
+            "title": "Llm Reasoning Effort",
+            "type": "string"
           }
         },
         "required": [
           "github_token_configured",
           "llm_provider",
           "llm_model",
+          "llm_configured",
+          "llm_host",
+          "llm_local",
+          "llm_reasoning_effort",
           "embedding_provider",
           "embedding_model"
         ],
@@ -1224,6 +1308,28 @@
           }
         },
         "summary": "Get Server Config",
+        "tags": [
+          "config"
+        ]
+      }
+    },
+    "/api/config/model-check": {
+      "post": {
+        "description": "One tiny structured call to the configured model. Costs a few tokens.",
+        "operationId": "checkModel",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelCheck"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Check Model",
         "tags": [
           "config"
         ]

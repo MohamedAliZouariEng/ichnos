@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     llm_provider: str | None = None
     llm_model: str | None = None
     llm_base_url: str | None = None
+    # ADR-0012: secret like the GitHub token; "off" stops sending reasoning_effort.
+    llm_api_key: SecretStr | None = None
+    llm_reasoning_effort: str = "low"
+    llm_timeout: float = 120.0
     embedding_provider: str | None = None
     embedding_model: str | None = None
     embedding_base_url: str | None = None
