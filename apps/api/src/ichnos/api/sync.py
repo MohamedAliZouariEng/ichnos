@@ -10,9 +10,10 @@ from sqlalchemy import select
 from ichnos.api.deps import SessionDep, SettingsDep
 from ichnos.api.workspaces import LOCAL_ACTOR, NOT_FOUND, get_workspace_or_404
 from ichnos.db.base import as_utc
-from ichnos.db.models import Document, GitHubItem, Run
+from ichnos.db.models import AuditEvent, Document, GitHubItem, Run
 from ichnos.github.reader import GitHubReader
-from ichnos.sync.service import SyncInProgress, run_sync
+from ichnos.sync.reset import reset_knowledge
+from ichnos.sync.service import SyncInProgress, run_sync, sync_running
 
 router = APIRouter(prefix="/api/workspaces/{workspace_id}", tags=["sync"])
 
@@ -178,3 +179,33 @@ def list_github_items(workspace_id: str, session: SessionDep) -> list[GitHubItem
         )
         for item in items
     ]
+
+
+class KnowledgeReset(BaseModel):
+    deleted: dict[str, int]
+
+
+@router.delete(
+    "/knowledge",
+    response_model=KnowledgeReset,
+    operation_id="resetKnowledge",
+    responses={**NOT_FOUND, 409: {"description": "A sync of this workspace is running"}},
+)
+def reset_workspace_knowledge(workspace_id: str, session: SessionDep) -> KnowledgeReset:
+    """Delete all derived knowledge and sync cursors; the next sync rebuilds everything."""
+    get_workspace_or_404(session, workspace_id)
+    if sync_running(session, workspace_id):
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, "A sync of this workspace is running; try again after it."
+        )
+    deleted = reset_knowledge(session, workspace_id)
+    session.add(
+        AuditEvent(
+            actor=LOCAL_ACTOR,
+            event_type="knowledge.reset",
+            workspace_id=workspace_id,
+            details={"deleted": deleted},
+        )
+    )
+    session.commit()
+    return KnowledgeReset(deleted=deleted)

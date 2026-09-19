@@ -257,6 +257,22 @@
         "title": "Health",
         "type": "object"
       },
+      "KnowledgeReset": {
+        "properties": {
+          "deleted": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Deleted",
+            "type": "object"
+          }
+        },
+        "required": [
+          "deleted"
+        ],
+        "title": "KnowledgeReset",
+        "type": "object"
+      },
       "LinkRead": {
         "properties": {
           "confidence": {
@@ -1188,6 +1204,55 @@
           }
         },
         "summary": "List Github Items",
+        "tags": [
+          "sync"
+        ]
+      }
+    },
+    "/api/workspaces/{workspace_id}/knowledge": {
+      "delete": {
+        "description": "Delete all derived knowledge and sync cursors; the next sync rebuilds everything.",
+        "operationId": "resetKnowledge",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeReset"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Workspace not found"
+          },
+          "409": {
+            "description": "A sync of this workspace is running"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reset Workspace Knowledge",
         "tags": [
           "sync"
         ]

@@ -33,6 +33,20 @@ class SyncInProgress(Exception):
     """Another sync of the same workspace is still running."""
 
 
+def sync_running(session: Session, workspace_id: str) -> bool:
+    return (
+        session.scalar(
+            select(Run.id).where(
+                Run.workspace_id == workspace_id,
+                Run.workflow_type == "sync",
+                Run.status == "running",
+                Run.created_at > utc_now() - STALE_AFTER,
+            )
+        )
+        is not None
+    )
+
+
 def _start(session: Session, workspace: Workspace) -> str:
     running = session.scalar(
         select(Run).where(
