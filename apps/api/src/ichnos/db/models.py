@@ -81,20 +81,31 @@ class Run(TimestampMixin, Base):
 
 
 class Approval(Base):
-    """A pending external action and the human decision on it (FR-6)."""
+    """A pending GitHub write and the human decision on it (FR-6, ADR-0015)."""
 
     __tablename__ = "approvals"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
     run_id: Mapped[str] = mapped_column(ForeignKey("runs.id", ondelete="CASCADE"), index=True)
     action_type: Mapped[str] = mapped_column(String(50))
-    target: Mapped[str] = mapped_column(String(500))
+    target: Mapped[str] = mapped_column(String(500))  # owner/name
     payload: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     payload_hash: Mapped[str] = mapped_column(String(64))
     status: Mapped[str] = mapped_column(String(20), default="pending")
     decided_by: Mapped[str | None] = mapped_column(String(100))
     decided_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    # Phase 4 (ADR-0015): where the write goes, what it was built on, what it did.
+    workspace_id: Mapped[str | None] = mapped_column(String(36), index=True)
+    artifact_id: Mapped[str | None] = mapped_column(String(36), index=True)
+    branch: Mapped[str | None] = mapped_column(String(200))
+    summary: Mapped[str | None] = mapped_column(String(300))
+    base: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    proposed_by: Mapped[str | None] = mapped_column(String(100))
+    decision_note: Mapped[str | None] = mapped_column(Text)
+    result: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    error: Mapped[str | None] = mapped_column(Text)
+    executed_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class AuditEvent(Base):
