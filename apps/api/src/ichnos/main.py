@@ -13,8 +13,10 @@ from ichnos.api.health import router as health_router
 from ichnos.api.intake import router as intake_router
 from ichnos.api.knowledge import router as knowledge_router
 from ichnos.api.runs import router as runs_router
+from ichnos.api.session import router as session_router
 from ichnos.api.sync import router as sync_router
 from ichnos.api.workspaces import router as workspaces_router
+from ichnos.auth.session import SessionStore
 from ichnos.db.engine import make_engine, make_session_factory
 from ichnos.db.migrate import upgrade_to_head
 from ichnos.settings import Settings, get_settings
@@ -48,6 +50,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.github_transport = None  # tests inject httpx.MockTransport here
     app.state.llm_transport = None  # tests inject httpx.MockTransport here
     app.state.runner = WorkflowRunner(config.workflow_workers)
+    password = config.approver_password.get_secret_value() if config.approver_password else None
+    app.state.sessions = SessionStore(password, idle_hours=config.session_idle_hours)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=config.cors_origins,
@@ -62,6 +66,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(intake_router)
     app.include_router(runs_router)
     app.include_router(artifacts_router)
+    app.include_router(session_router)
     return app
 
 

@@ -1000,3 +1000,25 @@ mark {
   overflow-wrap: normal;
   white-space: nowrap;
 }
+
+/* ---- Approver session (Phase 4) ---- */
+.topbar__right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.session {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.session--off {
+  color: var(--graphite);
+}
+
+.session__form input {
+  width: 14rem;
+}

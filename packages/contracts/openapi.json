@@ -1146,6 +1146,65 @@
         "title": "ServerConfig",
         "type": "object"
       },
+      "SessionRead": {
+        "properties": {
+          "approvals_enabled": {
+            "title": "Approvals Enabled",
+            "type": "boolean"
+          },
+          "approver": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approver"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "signed_in": {
+            "title": "Signed In",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "approvals_enabled",
+          "signed_in",
+          "approver",
+          "expires_at"
+        ],
+        "title": "SessionRead",
+        "type": "object"
+      },
+      "SignIn": {
+        "additionalProperties": false,
+        "properties": {
+          "password": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "password"
+        ],
+        "title": "SignIn",
+        "type": "object"
+      },
       "SourceCreate": {
         "additionalProperties": false,
         "properties": {
@@ -2288,6 +2347,153 @@
         "summary": "Stream Run Events",
         "tags": [
           "runs"
+        ]
+      }
+    },
+    "/api/session": {
+      "delete": {
+        "operationId": "signOut",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "ichnos_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ichnos Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Sign Out",
+        "tags": [
+          "session"
+        ]
+      },
+      "get": {
+        "operationId": "getSession",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "ichnos_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ichnos Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Session",
+        "tags": [
+          "session"
+        ]
+      },
+      "post": {
+        "operationId": "signIn",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "description": "Wrong passphrase"
+          },
+          "403": {
+            "description": "Approvals are disabled"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "description": "Too many failed sign-ins"
+          },
+          "502": {
+            "description": "The token owner could not be identified"
+          }
+        },
+        "summary": "Sign In",
+        "tags": [
+          "session"
         ]
       }
     },

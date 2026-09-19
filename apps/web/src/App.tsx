@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { HealthBadge } from "./components/HealthBadge";
+import { SessionControl } from "./components/SessionControl";
 import { WorkspaceSwitcher } from "./components/WorkspaceSwitcher";
 import { GitHubPanel } from "./features/github/GitHubPanel";
 import { ArtifactsPanel } from "./features/artifacts/ArtifactsPanel";
@@ -136,7 +137,10 @@ export function App() {
             }}
             onCreate={() => setCreating(true)}
           />
-          <HealthBadge />
+          <div className="topbar__right">
+            <SessionControl />
+            <HealthBadge />
+          </div>
         </header>
         <main className="content">{content()}</main>
       </div>
