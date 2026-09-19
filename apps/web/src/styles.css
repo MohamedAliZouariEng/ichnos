@@ -200,3 +200,140 @@ h1 {
     padding-inline: 1.25rem;
   }
 }
+
+/* ---- Workspace form ---- */
+h2 {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+}
+
+.panel {
+  margin-bottom: 1.5rem;
+  padding: 1.5rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--sheet);
+}
+
+.panel p {
+  margin: 0 0 0.75rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.3rem;
+  margin-bottom: 1rem;
+}
+
+.field label,
+.fieldset legend {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--sheet);
+  color: var(--ink);
+  font: inherit;
+}
+
+/* Repository identifiers read as code. */
+#repository,
+#branch,
+#indexPaths {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+}
+
+[aria-invalid="true"] {
+  border-color: var(--bad);
+}
+
+.field__error {
+  margin: 0;
+  color: var(--bad);
+  font-size: 0.85rem;
+}
+
+.hint,
+.panel .hint {
+  margin: 0;
+  color: var(--graphite);
+  font-size: 0.85rem;
+}
+
+.fieldset {
+  margin: 1.5rem 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.fieldset__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0 1rem;
+  margin-top: 0.75rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+button {
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--trace);
+  border-radius: 4px;
+  background: var(--trace);
+  color: #ffffff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.button--secondary {
+  background: transparent;
+  color: var(--trace);
+}
+
+.save-status,
+.panel .save-status {
+  margin: 0;
+  color: var(--graphite);
+  font-size: 0.9rem;
+}
+
+.save-status--error,
+.panel .save-status--error {
+  color: var(--bad);
+}
+
+.notice,
+.panel .notice {
+  margin: 1rem 0 0;
+  padding: 0.75rem 1rem;
+  border-left: 3px solid var(--graphite);
+  border-radius: 0 4px 4px 0;
+  background: var(--vellum);
+}
+
+.notice--ok {
+  border-left-color: var(--ok);
+}
+
+.notice--bad {
+  border-left-color: var(--bad);
+}
