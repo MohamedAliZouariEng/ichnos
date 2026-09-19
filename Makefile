@@ -58,3 +58,23 @@ api-migrate: ## Apply database migrations to the local metadata database
 .PHONY: api-migration
 api-migration: ## Create a migration from model changes: make api-migration m="describe the change"
 > cd $(API_DIR) && uv run alembic revision --autogenerate -m "$(m)"
+
+# ---- Contracts (packages/contracts, packages/api-client) ----
+.PHONY: contracts
+contracts: ## Regenerate openapi.json and TypeScript types from the API
+> cd $(API_DIR) && uv run python -m ichnos.openapi ../../packages/contracts/openapi.json
+> pnpm --filter @ichnos/contracts run generate
+
+.PHONY: contracts-check
+contracts-check: ## Fail if the committed contract or generated types are out of date
+> cd $(API_DIR) && uv run python -m ichnos.openapi > /tmp/ichnos-openapi.json
+> diff -u packages/contracts/openapi.json /tmp/ichnos-openapi.json
+> pnpm --filter @ichnos/contracts exec openapi-typescript openapi.json -o /tmp/ichnos-schema.ts
+> diff -u packages/contracts/src/schema.ts /tmp/ichnos-schema.ts
+> @echo "Contracts are up to date."
+
+.PHONY: ts-typecheck
+ts-typecheck: ## Type-check all TypeScript packages
+> pnpm -r --if-present run typecheck
+
+check: contracts-check ts-typecheck
