@@ -11,6 +11,7 @@ from ichnos.db.models import Document, Workspace
 from ichnos.github.reader import GitHubReader
 from ichnos.okf import ParsedDocument, parse_document
 from ichnos.sync.cursors import get_cursor, set_cursor
+from ichnos.sync.files import FILES_CURSOR, count_files, record_files
 
 BUNDLE_ROOT = "docs"
 TEXT_EXTENSIONS = (".md", ".txt")
@@ -65,11 +66,13 @@ def sync_documents(session: Session, reader: GitHubReader, workspace: Workspace)
         "documents_skipped": 0,
     }
     head = reader.branch_head(owner, repo, workspace.branch)
-    if get_cursor(session, workspace.id, CURSOR) == head:
+    files_current = get_cursor(session, workspace.id, FILES_CURSOR) == head
+    if get_cursor(session, workspace.id, CURSOR) == head and files_current:
         total = session.scalar(
             select(func.count()).select_from(Document).where(Document.workspace_id == workspace.id)
         )
         counts["documents_unchanged"] = total or 0
+        counts["files_unchanged"] = count_files(session, workspace.id)
         return counts
 
     existing = {
@@ -77,7 +80,8 @@ def sync_documents(session: Session, reader: GitHubReader, workspace: Workspace)
         for doc in session.scalars(select(Document).where(Document.workspace_id == workspace.id))
     }
     seen: set[str] = set()
-    for entry in reader.tree(owner, repo, head):
+    entries = reader.tree(owner, repo, head)
+    for entry in entries:
         if not selected(entry.path, workspace.index_paths):
             continue
         seen.add(entry.path)
@@ -102,5 +106,7 @@ def sync_documents(session: Session, reader: GitHubReader, workspace: Workspace)
             session.delete(doc)
             counts["documents_deleted"] += 1
 
+    counts.update(record_files(session, workspace, head, entries))
     set_cursor(session, workspace.id, CURSOR, head)
+    set_cursor(session, workspace.id, FILES_CURSOR, head)
     return counts

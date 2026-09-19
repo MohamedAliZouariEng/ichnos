@@ -14,6 +14,7 @@ from ichnos.db.models import (
     Link,
     PullRequestCommit,
     PullRequestFile,
+    RepositoryFile,
     SyncCursor,
 )
 
@@ -27,6 +28,7 @@ DERIVED = (
     Commit,
     GitHubItem,
     Document,
+    RepositoryFile,
     SyncCursor,
 )
 

@@ -19,6 +19,7 @@ CLOSING_RE = re.compile(
 )
 MENTION_RE = re.compile(r"(?<![\w&/#])#(\d+)\b")
 PARENT_RE = re.compile(r"^[-*]\s*(?:epic|initiative|parent)\s*:\s*#(\d+)", re.IGNORECASE)
+DEPENDS_RE = re.compile(r"^[-*]\s*depends\s+on\s*:?\s*#(\d+)", re.IGNORECASE)
 PATH_RE = re.compile(r"(?<![\w/.-])((?:[\w.-]+/)+[\w.-]+\.(?:md|txt))\b")
 HEADING_RE = re.compile(r"^#{1,6}\s+(.+?)\s*$")
 COMMENT_LABELS = {
@@ -127,6 +128,11 @@ class _Collector:
                     numbers.add(int(match.group(1)))
                     target = self.item_node(int(match.group(1)))
                     self.add(source, target, "parent", "explicit", evidence, EXPLICIT)
+            if conventions and heading == "dependencies":
+                for match in DEPENDS_RE.finditer(line):
+                    numbers.add(int(match.group(1)))
+                    target = self.item_node(int(match.group(1)))
+                    self.add(source, target, "depends_on", "explicit", evidence, EXPLICIT)
             if conventions and heading == "source specification":
                 for match in PATH_RE.finditer(line):
                     paths.add(match.group(1))
