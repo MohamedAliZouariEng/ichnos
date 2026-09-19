@@ -5,7 +5,7 @@ from sqlalchemy import inspect
 from sqlalchemy.exc import IntegrityError
 
 from ichnos.db import models
-from ichnos.db.base import Base
+from ichnos.db.base import Base, include_object
 from ichnos.db.engine import make_engine, make_session_factory
 from ichnos.db.migrate import upgrade_to_head
 from ichnos.settings import Settings
@@ -29,7 +29,10 @@ def test_migrations_create_all_tables(settings: Settings) -> None:
 
 def test_migrations_match_models(settings: Settings) -> None:
     with make_engine(settings).connect() as connection:
-        diff = compare_metadata(MigrationContext.configure(connection), Base.metadata)
+        diff = compare_metadata(
+            MigrationContext.configure(connection, opts={"include_object": include_object}),
+            Base.metadata,
+        )
     assert diff == []
 
 

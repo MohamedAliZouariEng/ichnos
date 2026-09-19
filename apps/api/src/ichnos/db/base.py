@@ -2,6 +2,7 @@
 
 import datetime as dt
 import uuid
+from typing import Any
 
 from sqlalchemy import MetaData
 from sqlalchemy.orm import DeclarativeBase
@@ -26,3 +27,10 @@ def utc_now() -> dt.datetime:
 
 def new_id() -> str:
     return str(uuid.uuid4())
+
+
+def include_object(
+    obj: Any, name: str | None, type_: str, reflected: bool, compare_to: Any
+) -> bool:
+    """Hide objects Alembic cannot model: the FTS5 table and its shadow tables (ADR-0008)."""
+    return not (type_ == "table" and name is not None and name.startswith("chunks_fts"))
