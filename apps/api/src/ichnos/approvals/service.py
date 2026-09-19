@@ -13,6 +13,7 @@ import httpx
 from pydantic import SecretStr
 from sqlalchemy.orm import Session
 
+from ichnos.approvals.issues import run_create_issues
 from ichnos.approvals.payload import (
     APPROVED,
     EXECUTED,
@@ -79,7 +80,15 @@ def _docs_run(writer: GitHubWriter, payload: Payload) -> Payload:
     }
 
 
-EXECUTORS: dict[str, Executor] = {"docs_pull_request": Executor(_docs_stale, _docs_run)}
+def _issues_stale(writer: GitHubWriter, payload: Payload, base: Payload) -> str | None:
+    """Issues touch no files; the artifact check in approve() covers the BRD."""
+    return None
+
+
+EXECUTORS: dict[str, Executor] = {
+    "docs_pull_request": Executor(_docs_stale, _docs_run),
+    "create_issues": Executor(_issues_stale, run_create_issues),
+}
 
 
 def _audit(session: Session, event: str, approval: Approval, actor: str, **details: Any) -> None:
@@ -256,5 +265,6 @@ def approve(
                 return _finish(session, approval, STALE, approver, error=reason)
             result = executor.run(writer, approval.payload)
         except GitHubWriteError as exc:
-            return _finish(session, approval, FAILED, approver, error=str(exc))
+            partial = getattr(exc, "partial", None)  # Issues created before the failure
+            return _finish(session, approval, FAILED, approver, error=str(exc), result=partial)
     return _finish(session, approval, EXECUTED, approver, result=result)
