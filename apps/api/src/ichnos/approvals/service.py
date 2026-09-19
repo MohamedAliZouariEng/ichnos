@@ -25,7 +25,7 @@ from ichnos.approvals.payload import (
 )
 from ichnos.approvals.ticket import issue_ticket
 from ichnos.db.base import utc_now
-from ichnos.db.models import Approval, Artifact, AuditEvent
+from ichnos.db.models import Approval, Artifact, AuditEvent, Run
 from ichnos.github.writer import FileChange, GitHubWriteError, GitHubWriter
 
 Payload = dict[str, Any]
@@ -95,6 +95,22 @@ def _audit(session: Session, event: str, approval: Approval, actor: str, **detai
     )
 
 
+RUN_STATUS = {EXECUTED: "succeeded", REJECTED: "rejected", STALE: "failed", FAILED: "failed"}
+
+
+def _settle(session: Session, approval: Approval, status: str, error: str | None) -> None:
+    """A waiting run and a published artifact follow the decision."""
+    run = session.get(Run, approval.run_id)
+    if run is not None and run.status == "waiting":
+        run.status = RUN_STATUS[status]
+        run.error = error
+        run.finished_at = utc_now()
+    if approval.artifact_id and approval.action_type == "docs_pull_request":
+        artifact = session.get(Artifact, approval.artifact_id)
+        if artifact is not None:
+            artifact.status = "approved" if status == EXECUTED else "draft"
+
+
 def _finish(
     session: Session,
     approval: Approval,
@@ -109,6 +125,7 @@ def _finish(
     approval.result = result
     if status == EXECUTED:
         approval.executed_at = utc_now()
+    _settle(session, approval, status, error)
     _audit(session, f"approval.{status}", approval, actor, error=error, result=result)
     session.commit()
     return approval
@@ -147,6 +164,10 @@ def propose(
     )
     session.add(approval)
     session.flush()
+    if artifact_id and action_type == "docs_pull_request":
+        artifact = session.get(Artifact, artifact_id)
+        if artifact is not None:
+            artifact.status = "needs-review"
     _audit(session, "approval.proposed", approval, proposed_by, payload_hash=approval.payload_hash)
     session.commit()
     return approval
@@ -167,6 +188,7 @@ def reject(session: Session, approval_id: str, *, approver: str, note: str | Non
     approval.decided_by = approver
     approval.decided_at = utc_now()
     approval.decision_note = (note or "").strip() or None
+    _settle(session, approval, REJECTED, None)
     _audit(session, "approval.rejected", approval, approver, note=approval.decision_note)
     session.commit()
     return approval

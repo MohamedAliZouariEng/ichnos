@@ -4,6 +4,7 @@ Blobs, trees and commits are content-addressed like Git's; every request that is
 recorded in `writes`, which is what the zero-unapproved-writes test checks (ADR-0015).
 """
 
+import base64
 import hashlib
 import json
 from typing import Any
@@ -98,7 +99,9 @@ class FakeGitRepo:
             sha = tree.get(route.removeprefix("/contents/"))
             if sha is None:
                 return httpx.Response(404, json={"message": "Not Found"})
-            return httpx.Response(200, json={"sha": sha, "type": "file"})
+            content = base64.b64encode(self.blobs[sha].encode()).decode()
+            file = {"sha": sha, "type": "file", "encoding": "base64", "content": content}
+            return httpx.Response(200, json=file)
         if method == "POST" and route == "/git/blobs":
             return httpx.Response(201, json={"sha": self._blob(body["content"])})
         if method == "POST" and route == "/git/trees":
