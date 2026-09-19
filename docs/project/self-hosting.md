@@ -4,8 +4,8 @@ title: Self-hosting Ichnos
 description: Run Ichnos with Docker Compose, connect GitHub with a read-only token, and back up, upgrade and troubleshoot an installation.
 tags: [self-hosting, docker, operations, security]
 status: stable
-generated: { by: claude/opus-5, at: 2026-09-19T15:34:39Z }
-verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T15:34:39Z }
+generated: { by: claude/opus-5, at: 2026-09-19T17:09:14Z }
+verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T17:09:14Z }
 sources:
   - id: adr-0004
     resource: /adr/0004-github-access-fine-grained-pat.md
@@ -43,6 +43,19 @@ Ichnos reads GitHub with a fine-grained personal access token.[^adr-0004]
 5. In the UI, select **Check GitHub access**.
 
 The token is read from the environment only. It is never stored in the database, returned by the API, or copied into an image.
+
+# Sync a repository
+
+1. Give the token read access to every repository you add as a workspace: edit the fine-grained token on GitHub and add the repository under **Repository access**.
+2. In the UI, choose the workspace in the top bar, open **Inbox**, and select **Sync now**.
+
+A sync reads the documents under the workspace's paths to index, plus Issues, pull requests, comments, reviews, changed files and commits (ADR-0009). The first sync of a small repository takes a few dozen requests; later syncs fetch only what changed, and an unchanged repository costs about four.
+
+Everything a sync stores is derived from GitHub. To rebuild it from scratch, reset the workspace's knowledge and sync again:
+
+```bash
+curl -X DELETE http://127.0.0.1:8765/api/workspaces/<workspace-id>/knowledge
+```
 
 # Configuration
 
@@ -97,6 +110,8 @@ docker compose up --build --wait
 | The UI says "API unreachable" | Check that the `api` container is healthy |
 | GitHub check: "token rejected" | The token expired or was revoked; create a new one |
 | GitHub check: "repository not found" | The token does not include that repository, or the name is wrong |
+| Sync failed: "Rate limit reached" | Wait until the time in the message; later syncs cost far fewer requests |
+| Sync failed: "Not Found" | The token cannot read the repository, or the branch does not exist; select **Check GitHub access** |
 
 [^adr-0004]: ADR-0004: GitHub access through a fine-grained personal access token
 [^adr-0006]: ADR-0006: Ollama as an optional Docker Compose profile

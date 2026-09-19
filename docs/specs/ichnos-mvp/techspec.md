@@ -4,8 +4,8 @@ title: Ichnos MVP — Technical Specification
 description: Information model, agent workflow, architecture, API, GitHub conventions and security design for the Ichnos MVP.
 tags: [ichnos, mvp, architecture, langgraph, okf]
 status: stable
-generated: { by: claude/opus-5, at: 2026-09-19T15:47:02Z }
-verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T15:47:02Z }
+generated: { by: claude/opus-5, at: 2026-09-19T17:09:14Z }
+verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T17:09:14Z }
 sources:
   - id: prd
     resource: https://docs.sylergy.net/s/documentation/p/athar-XwmmVmIjhs
@@ -146,7 +146,7 @@ Each run retains: input artifact IDs, repository and branch, retrieved context r
 | Orchestration | LangGraph | Stateful workflow, routing, interrupts, resumption |
 | Metadata | SQLite | Runs, approvals, sync cursors, audit events |
 | Knowledge | OKF bundle in `docs/` | Canonical documentation, typed and linked |
-| Retrieval | Local vector index + OKF link graph | Context retrieval and relationship expansion |
+| Retrieval | SQLite FTS5 index + links table (ADR-0008, ADR-0010) | Context retrieval and relationship expansion |
 | LLM | Configurable local or hosted model | Extraction, drafting, planning, validation |
 | GitHub | REST/GraphQL API | Issues, PRs, commits, comments, metadata |
 | Notifications | Optional Slack webhook | Status notifications |
@@ -159,9 +159,12 @@ ichnos/
 ├── apps/
 │   ├── api/                     # FastAPI service; Python package `ichnos` (uv)
 │   │   ├── src/ichnos/
-│   │   │   ├── api/             # routers: health, config, workspaces
+│   │   │   ├── api/             # routers: health, config, workspaces, sync, knowledge
 │   │   │   ├── db/              # SQLAlchemy models, engine, Alembic migrations
-│   │   │   ├── github/          # read-only GitHub client (ADR-0004)
+│   │   │   ├── github/          # read-only GitHub client and reader (ADR-0004, ADR-0009)
+│   │   │   ├── knowledge/       # link extraction and chunking (ADR-0008, ADR-0010)
+│   │   │   ├── okf/             # tolerant OKF v0.2 parser (ADR-0001)
+│   │   │   ├── sync/            # sync stages, cursors and reset (ADR-0009)
 │   │   │   ├── main.py          # app factory; migrations run at startup
 │   │   │   ├── openapi.py       # contract export
 │   │   │   └── settings.py      # ICHNOS_* configuration
@@ -175,8 +178,8 @@ ichnos/
 │   ├── contracts/               # @ichnos/contracts: openapi.json and generated types
 │   └── api-client/              # @ichnos/api-client: typed openapi-fetch client
 ├── docs/                        # OKF bundle
-├── examples/demo-repository/    # Quire demo repository (OKF bundle)
-├── scripts/                     # OKF validator, rename check, label sync, docs log
+├── examples/demo-repository/    # Quire demo repository; published by scripts/publish_demo.sh
+├── scripts/                     # OKF validator, rename check, labels, docs log, demo, e2e
 ├── .github/                     # CI, Dependabot, templates
 ├── docker-compose.yml
 ├── .env.example
@@ -217,7 +220,7 @@ POST  /api/query
 GET   /api/traceability/{artifact_id}
 ```
 
-Every operation that writes to GitHub first creates a pending approval; the approval endpoint executes the exact persisted payload. Implemented in Phase 1: `GET /healthz`, `GET /api/config`, `GET`/`POST /api/workspaces`, `GET`/`PATCH /api/workspaces/{workspace_id}` and `POST /api/workspaces/{workspace_id}/github-check`. The committed contract is `packages/contracts/openapi.json`.
+Every operation that writes to GitHub first creates a pending approval; the approval endpoint executes the exact persisted payload. Implemented so far: health and configuration (`GET /healthz`, `GET /api/config`); workspaces (`GET`/`POST /api/workspaces`, `GET`/`PATCH /api/workspaces/{workspace_id}`, `POST …/github-check`); sync (`POST …/sync`, `GET …/sync-runs`, `DELETE …/knowledge`); knowledge (`GET …/documents`, `GET …/documents/detail`, `GET …/github/items`, `GET …/links`, `GET …/search`). The committed contract is `packages/contracts/openapi.json`.
 
 # GitHub conventions
 

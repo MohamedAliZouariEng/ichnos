@@ -1,6 +1,8 @@
 # Documentation Update Log
 
 ## 2026-09-19
+* **Update**: Added syncing, the two databases and end-to-end checks to the [development guide](/project/development.md) and the [self-hosting guide](/project/self-hosting.md).
+* **Update**: Aligned the [technical specification](/specs/ichnos-mvp/techspec.md) with Phase 2: layout, retrieval and API scope.
 * **Creation**: Added [ADR-0008](/adr/0008-retrieval-store-sqlite-fts.md), [ADR-0009](/adr/0009-github-sync-strategy.md) and [ADR-0010](/adr/0010-knowledge-links-provenance.md).
 * **Update**: Settled the retrieval store decision in the [technical specification](/specs/ichnos-mvp/techspec.md).
 * **Creation**: Added the [development guide](/project/development.md) and the [self-hosting guide](/project/self-hosting.md).
