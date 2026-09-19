@@ -1,3 +1,3 @@
 # Specifications
 
-<!-- One folder per feature: <slug>/brd.md and <slug>/techspec.md -->
+* [Ichnos MVP](ichnos-mvp/) - Requirements and technical design for the Ichnos open-source MVP.
