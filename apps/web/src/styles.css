@@ -757,3 +757,76 @@ mark {
 .notice .actions {
   margin-top: 0.5rem;
 }
+
+/* ---- Workflow runs (Phase 3) ---- */
+.badge--bad {
+  color: var(--bad);
+}
+
+.panel textarea,
+.panel input[type="file"] {
+  width: 100%;
+  margin: 0.5rem 0;
+}
+
+.stages {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.75rem;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.stage {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--rule);
+  border-left-width: 4px;
+  border-radius: 6px;
+  background: var(--sheet);
+}
+
+.stage--running {
+  border-left-color: var(--trace);
+}
+
+.stage--done {
+  border-left-color: var(--ok);
+}
+
+.stage--failed {
+  border-left-color: var(--bad);
+}
+
+.stage__name {
+  display: block;
+  font-weight: 600;
+}
+
+.stage__state {
+  color: var(--graphite);
+  font-size: 0.8rem;
+}
+
+.stage__message {
+  margin: 0.4rem 0 0;
+  font-size: 0.85rem;
+}
+
+.events {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+}
+
+.events li {
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.events__time {
+  color: var(--graphite);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}

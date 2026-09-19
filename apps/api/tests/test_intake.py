@@ -128,3 +128,12 @@ def test_new_sources_are_audited(app: FastAPI, client: TestClient, workspace_id:
             select(AuditEvent).where(AuditEvent.event_type == "source.created")
         ).all()
     assert len(events) == 1
+
+
+def test_slugs_stop_at_a_word_boundary() -> None:
+    from ichnos.api.intake import slugify
+
+    title = "Invitation lifecycle hardening: expiry, resending and error handling for everyone"
+    assert slugify(title) == "invitation-lifecycle-hardening-expiry-resending-and-error"
+    assert slugify("Short title") == "short-title"
+    assert slugify("!!!") == "note"

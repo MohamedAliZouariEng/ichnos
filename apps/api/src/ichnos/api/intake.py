@@ -25,7 +25,10 @@ SLUG_RE = re.compile(r"[^a-z0-9]+")
 
 def slugify(text: str, limit: int = 60) -> str:
     slug = SLUG_RE.sub("-", text.lower()).strip("-")
-    return slug[:limit].rstrip("-") or "note"
+    cut = slug[:limit]
+    if len(slug) > limit and slug[limit] != "-" and "-" in cut:
+        cut = cut.rsplit("-", 1)[0]  # never end on half a word
+    return cut.strip("-") or "note"
 
 
 def derive_title(content: str) -> str:

@@ -30,3 +30,7 @@ export type GitHubItem = Schemas["GitHubItemSummary"];
 export type KnowledgeLink = Schemas["LinkRead"];
 export type SearchHit = Schemas["SearchHit"];
 export type ModelCheck = Schemas["ModelCheck"];
+export type SourceRead = Schemas["SourceRead"];
+export type RunSummary = Schemas["RunSummary"];
+export type RunDetail = Schemas["RunDetail"];
+export type RunEvent = Schemas["RunEventRead"];
