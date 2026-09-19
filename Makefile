@@ -50,3 +50,11 @@ api-test: ## Run API tests (pytest)
 > cd $(API_DIR) && uv run pytest
 
 check: api-lint api-typecheck api-test
+
+.PHONY: api-migrate
+api-migrate: ## Apply database migrations to the local metadata database
+> cd $(API_DIR) && uv run alembic upgrade head
+
+.PHONY: api-migration
+api-migration: ## Create a migration from model changes: make api-migration m="describe the change"
+> cd $(API_DIR) && uv run alembic revision --autogenerate -m "$(m)"

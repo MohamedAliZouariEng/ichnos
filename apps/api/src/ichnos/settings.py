@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     env: Literal["development", "test", "production"] = "development"
     log_level: str = "INFO"
     data_dir: Path = Path("data")
+    database_url: str | None = None
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
 
     # GitHub access (ADR-0004): read from the environment only; never stored or returned.
@@ -30,6 +31,10 @@ class Settings(BaseSettings):
     embedding_provider: str | None = None
     embedding_model: str | None = None
     embedding_base_url: str | None = None
+
+    def sqlalchemy_url(self) -> str:
+        """Database URL; defaults to a SQLite file inside data_dir."""
+        return self.database_url or f"sqlite:///{self.data_dir.resolve() / 'ichnos.db'}"
 
 
 @lru_cache
