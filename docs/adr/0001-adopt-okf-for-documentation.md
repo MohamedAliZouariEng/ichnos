@@ -4,8 +4,8 @@ title: "ADR-0001: Adopt OKF for repository documentation"
 description: All repository documentation is an Open Knowledge Format v0.2 bundle in docs/.
 tags: [adr, documentation, okf]
 status: stable
-generated: { by: claude/opus-5, at: __NOW__ }
-verified: { by: human:MohamedAliZouariEng, at: __NOW__ }
+generated: { by: claude/opus-5, at: 2026-09-19T12:49:50Z }
+verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T12:49:50Z }
 sources:
   - id: okf-site
     resource: https://okf.md/

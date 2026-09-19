@@ -4,8 +4,8 @@ title: "ADR-0003: LangGraph for workflow orchestration"
 description: The Ichnos agent workflow is a LangGraph state graph with persisted checkpoints and human-approval interrupts.
 tags: [adr, orchestration, langgraph, agents]
 status: stable
-generated: { by: claude/opus-5, at: __NOW__ }
-verified: { by: human:MohamedAliZouariEng, at: __NOW__ }
+generated: { by: claude/opus-5, at: 2026-09-19T12:49:50Z }
+verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T12:49:50Z }
 sources:
   - id: techspec
     resource: /specs/ichnos-mvp/techspec.md
