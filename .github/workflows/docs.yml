@@ -23,6 +23,8 @@ jobs:
         run: pip install -r scripts/requirements-docs.txt
       - name: Validate docs/ as an OKF v0.2 bundle
         run: python scripts/validate_okf.py docs --strict
+      - name: Validate the demo repository bundle
+        run: python scripts/validate_okf.py examples/demo-repository/docs --strict
 
   rename-check:
     name: Rename check
