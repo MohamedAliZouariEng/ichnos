@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from ichnos import __version__
+from ichnos.api.approvals import router as approvals_router
 from ichnos.api.artifacts import router as artifacts_router
 from ichnos.api.config import router as config_router
 from ichnos.api.health import router as health_router
@@ -67,6 +68,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(runs_router)
     app.include_router(artifacts_router)
     app.include_router(session_router)
+    app.include_router(approvals_router)
     return app
 
 
