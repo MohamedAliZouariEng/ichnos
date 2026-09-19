@@ -4,8 +4,8 @@ title: Ichnos MVP — Technical Specification
 description: Information model, agent workflow, architecture, API, GitHub conventions and security design for the Ichnos MVP.
 tags: [ichnos, mvp, architecture, langgraph, okf]
 status: stable
-generated: { by: claude/opus-5, at: 2026-09-19T15:34:39Z }
-verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T15:34:39Z }
+generated: { by: claude/opus-5, at: 2026-09-19T15:47:02Z }
+verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T15:47:02Z }
 sources:
   - id: prd
     resource: https://docs.sylergy.net/s/documentation/p/athar-XwmmVmIjhs
@@ -34,6 +34,9 @@ Key decisions are recorded as ADRs:
 - [ADR-0005: One repository per workspace](/adr/0005-one-repository-per-workspace.md)
 - [ADR-0006: Ollama as an optional Compose profile](/adr/0006-ollama-optional-compose-profile.md)
 - [ADR-0007: Monorepo tooling with pnpm and uv](/adr/0007-monorepo-tooling-pnpm-uv.md)
+- [ADR-0008: Retrieval store: SQLite full-text search now](/adr/0008-retrieval-store-sqlite-fts.md)
+- [ADR-0009: GitHub sync strategy](/adr/0009-github-sync-strategy.md)
+- [ADR-0010: Knowledge links record origin, evidence and confidence](/adr/0010-knowledge-links-provenance.md)
 
 # Information model
 
@@ -276,7 +279,7 @@ Closes #456
 | Decision | Settle by | Current leaning |
 | --- | --- | --- |
 | LangGraph mandatory or behind an adapter | Phase 3 | Mandatory, thin adapter interface |
-| Default retrieval store | Phase 2 | SQLite + embeddings, OKF links as the graph |
+| Default retrieval store | Phase 2 | Decided: SQLite FTS5 now, embeddings in Phase 3 ([ADR-0008](/adr/0008-retrieval-store-sqlite-fts.md)) |
 | Run updates: polling, SSE or WebSockets | Phase 3 | SSE |
 | GitHub OAuth, PAT or both | Phase 1 | Decided: fine-grained PAT ([ADR-0004](/adr/0004-github-access-fine-grained-pat.md)) |
 | Ollama in Docker Compose | Phase 1 | Decided: optional profile ([ADR-0006](/adr/0006-ollama-optional-compose-profile.md)) |

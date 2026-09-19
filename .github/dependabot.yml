@@ -36,3 +36,10 @@ updates:
       - /apps/web
     schedule:
       interval: weekly
+    ignore:
+      # Node follows the LTS line pinned in .nvmrc; upgrade deliberately (see PR #3).
+      - dependency-name: node
+        update-types: ["version-update:semver-major"]
+      # pyproject.toml pins Python 3.12; a new Python minor is a deliberate upgrade.
+      - dependency-name: python
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
