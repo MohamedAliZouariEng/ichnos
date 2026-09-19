@@ -122,6 +122,11 @@ def keywords(texts: list[str], limit: int = MAX_KEYWORDS) -> list[str]:
     return [word for word, _ in counts.most_common(limit)]
 
 
+def _normal(value: str) -> str:
+    """Whitespace-insensitive form of a text, to recognise the same document twice."""
+    return " ".join(value.split())
+
+
 def _matched(words: list[str], excerpt: str) -> list[str]:
     lowered = excerpt.lower()
     return [word for word in words if word[:5] in lowered][:4]
@@ -151,6 +156,10 @@ def retrieve(
     if not words:
         return result
     excluded = {source.document_path for source in sources if source.document_path}
+    # An uploaded or pasted copy of a synced document must not come back as context.
+    duplicates = {
+        _normal(parse_document("docs/source.md", source.content).body) for source in sources
+    }
 
     documents = {
         doc.path: doc
@@ -168,7 +177,12 @@ def retrieve(
     ) -> Candidate | None:
         if kind == "document":
             doc = documents.get(key)
-            if doc is None or doc.kind in SKIPPED_KINDS or key in excluded:
+            if (
+                doc is None
+                or doc.kind in SKIPPED_KINDS
+                or key in excluded
+                or _normal(doc.body) in duplicates
+            ):
                 return None
             weight = TRUST_WEIGHT.get(doc.trust_tier, 1.0) * TYPE_BOOST.get(doc.doc_type or "", 1.0)
             return Candidate(
