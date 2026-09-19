@@ -1,0 +1,4 @@
+# Fixed strings that may keep the old project name, as provenance only.
+# One string per line. Lines starting with # are ignored.
+docs.sylergy.net/s/documentation/p/athar-XwmmVmIjhs
+written under the working name Athar
