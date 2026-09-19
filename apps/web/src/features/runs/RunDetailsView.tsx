@@ -3,6 +3,7 @@ import type { RunDetail, RunEvent } from "@ichnos/api-client";
 
 import { api } from "../../api";
 import { UNREACHABLE } from "../../labels";
+import { LinkIssues } from "./LinkIssues";
 import { StatusBadge } from "./StatusBadge";
 
 const STAGES = [
@@ -171,6 +172,8 @@ export function RunDetailsView({ runId, onBack, onOpenArtifact, pollMs = 2000 }:
           )}
         </section>
       )}
+
+      <LinkIssues run={run} />
 
       <section className="panel" aria-label="Event log">
         <h2>Event log</h2>

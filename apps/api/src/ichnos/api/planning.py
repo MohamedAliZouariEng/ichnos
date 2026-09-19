@@ -12,7 +12,7 @@ from ichnos.db.models import Approval, Artifact, Run, Workspace
 from ichnos.llm import provider_from_settings
 from ichnos.settings import Settings
 from ichnos.workflows import plan_flow
-from ichnos.workflows.engine import resume_run, start_run
+from ichnos.workflows.engine import StageContext, resume_run, start_run
 
 router = APIRouter(tags=["runs"])
 
@@ -99,3 +99,62 @@ def resume_if_waiting(app: FastAPI, settings: Settings, approval: Approval) -> N
         checkpoint_path=settings.checkpoint_path(),
         services=_services(settings, app, model),
     )
+
+
+@router.post(
+    "/api/runs/{run_id}/link-issues",
+    response_model=RunDetail,
+    operation_id="linkIssues",
+    responses={
+        401: {"description": "Sign in to approve"},
+        404: {"description": "Planning run not found"},
+        409: {"description": "No Issues, already proposed, or the BRD is not merged yet"},
+    },
+)
+def link_issues(
+    run_id: str,
+    approver: ApproverDep,
+    session: SessionDep,
+    settings: SettingsDep,
+    request: Request,
+) -> RunDetail:
+    """Propose writing a finished plan's Issue numbers into its merged BRD."""
+    run = session.get(Run, run_id)
+    if run is None or run.workflow_type != plan_flow.WORKFLOW_TYPE:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Planning run not found.")
+    result = dict((run.outputs or {}).get("result") or {})
+    if not result.get("issues"):
+        raise HTTPException(status.HTTP_409_CONFLICT, "This planning run created no Issues.")
+    earlier = result.get("follow_up_approval_id")
+    if earlier:
+        previous = session.get(Approval, earlier)
+        if previous is not None and previous.status in ("pending", "approved", "executed"):
+            raise HTTPException(status.HTTP_409_CONFLICT, "Linking is already proposed.")
+    inputs = dict(run.inputs or {})
+    artifact = session.get(Artifact, str(inputs.get("artifact_id")))
+    if artifact is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "The planned BRD no longer exists.")
+    data = {
+        **inputs,
+        "approver": approver.identity,
+        "brd_path": f"docs/specs/{artifact.slug}/{artifact.kind}.md",
+    }
+    context = StageContext(
+        run.id,
+        run.workspace_id,
+        request.app.state.session_factory,
+        _services(settings, request.app),
+    )
+    approval_id = plan_flow.link_issues_into_brd(data, context, result["issues"])
+    if approval_id is None:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            f"{data['brd_path']} is not on {data['base_branch']} yet; "
+            "merge its pull request first.",
+        )
+    run.outputs = {
+        **(run.outputs or {}),
+        "result": {**result, "follow_up_approval_id": approval_id},
+    }
+    session.commit()
+    return _detail(session, run)
