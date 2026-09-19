@@ -1,0 +1,98 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: API
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Lint (ruff)
+        run: make api-lint
+      - name: Type-check (mypy --strict)
+        run: make api-typecheck
+      - name: Test (pytest)
+        run: make api-test
+
+  web:
+    name: Web
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Type-check (tsc)
+        run: make ts-typecheck
+      - name: Test (vitest)
+        run: make web-test
+      - name: Build
+        run: make web-build
+
+  contracts:
+    name: Contracts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: OpenAPI and TypeScript types match the code
+        run: make contracts-check
+
+  docker:
+    name: Docker stack
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start the stack exactly as a new user would
+        run: |
+          cp .env.example .env
+          docker compose up --build --detach --wait
+      - name: Health check through nginx
+        run: curl --fail --silent --show-error http://127.0.0.1:8765/healthz
+      - name: Create a workspace through the proxy
+        run: >-
+          curl --fail --silent --show-error -X POST http://127.0.0.1:8765/api/workspaces
+          -H 'content-type: application/json'
+          -d '{"name":"ci","repository":"octo-org/demo"}'
+      - name: The workspace survives a restart
+        run: |
+          docker compose down
+          docker compose up --detach --wait
+          curl --fail --silent --show-error http://127.0.0.1:8765/api/workspaces | grep -q '"name":"ci"'
+      - name: Show logs on failure
+        if: failure()
+        run: docker compose logs
+      - name: Stop and remove the test volume
+        if: always()
+        run: docker compose down --volumes

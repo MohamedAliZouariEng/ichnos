@@ -4,8 +4,8 @@ title: Ichnos MVP — Technical Specification
 description: Information model, agent workflow, architecture, API, GitHub conventions and security design for the Ichnos MVP.
 tags: [ichnos, mvp, architecture, langgraph, okf]
 status: stable
-generated: { by: claude/opus-5, at: 2026-09-19T12:46:45Z }
-verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T12:46:45Z }
+generated: { by: claude/opus-5, at: 2026-09-19T15:34:39Z }
+verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T15:34:39Z }
 sources:
   - id: prd
     resource: https://docs.sylergy.net/s/documentation/p/athar-XwmmVmIjhs
@@ -30,6 +30,10 @@ Key decisions are recorded as ADRs:
 - [ADR-0001: Adopt OKF for repository documentation](/adr/0001-adopt-okf-for-documentation.md)
 - [ADR-0002: GitHub is the canonical source of truth](/adr/0002-github-is-canonical.md)
 - [ADR-0003: LangGraph for workflow orchestration](/adr/0003-langgraph-for-orchestration.md)
+- [ADR-0004: GitHub access through a fine-grained PAT](/adr/0004-github-access-fine-grained-pat.md)
+- [ADR-0005: One repository per workspace](/adr/0005-one-repository-per-workspace.md)
+- [ADR-0006: Ollama as an optional Compose profile](/adr/0006-ollama-optional-compose-profile.md)
+- [ADR-0007: Monorepo tooling with pnpm and uv](/adr/0007-monorepo-tooling-pnpm-uv.md)
 
 # Information model
 
@@ -150,31 +154,35 @@ Each run retains: input artifact IDs, repository and branch, retrieved context r
 ```text
 ichnos/
 ├── apps/
-│   ├── api/                 # FastAPI + LangGraph (Python package: ichnos)
-│   │   ├── app/
-│   │   │   ├── api/  artifacts/  approvals/  agents/  github/
-│   │   │   ├── okf/  retrieval/  runs/  settings/
-│   │   │   └── main.py
+│   ├── api/                     # FastAPI service; Python package `ichnos` (uv)
+│   │   ├── src/ichnos/
+│   │   │   ├── api/             # routers: health, config, workspaces
+│   │   │   ├── db/              # SQLAlchemy models, engine, Alembic migrations
+│   │   │   ├── github/          # read-only GitHub client (ADR-0004)
+│   │   │   ├── main.py          # app factory; migrations run at startup
+│   │   │   ├── openapi.py       # contract export
+│   │   │   └── settings.py      # ICHNOS_* configuration
 │   │   ├── tests/
-│   │   └── pyproject.toml
-│   └── web/                 # React + TypeScript + Vite
-│       ├── src/{app,components,features,lib,types}/
-│       ├── package.json
-│       └── vite.config.ts
+│   │   ├── alembic.ini
+│   │   ├── Dockerfile
+│   │   ├── pyproject.toml
+│   │   └── uv.lock
+│   └── web/                     # React + TypeScript + Vite; served by nginx in Docker
 ├── packages/
-│   ├── api-client/          # @ichnos/api-client
-│   ├── contracts/           # @ichnos/contracts
-│   └── ui/                  # @ichnos/ui
-├── docs/                    # OKF bundle
-├── examples/demo-repository/
-├── .github/
+│   ├── contracts/               # @ichnos/contracts: openapi.json and generated types
+│   └── api-client/              # @ichnos/api-client: typed openapi-fetch client
+├── docs/                        # OKF bundle
+├── examples/demo-repository/    # Quire demo repository (OKF bundle)
+├── scripts/                     # OKF validator, rename check, label sync, docs log
+├── .github/                     # CI, Dependabot, templates
 ├── docker-compose.yml
 ├── .env.example
-├── Makefile
+├── Makefile                     # single entry point (ADR-0007)
 ├── package.json
-├── pnpm-workspace.yaml
-└── README.md
+└── pnpm-workspace.yaml
 ```
+
+A shared `packages/ui` is added once a second app needs shared components.
 
 ## Deployment
 
@@ -182,10 +190,10 @@ ichnos/
 git clone https://github.com/MohamedAliZouariEng/ichnos.git
 cd ichnos
 cp .env.example .env
-docker compose up --build
+docker compose up --build --wait
 ```
 
-The default deployment runs the web frontend, the API, an optional worker, and a persistent local data volume. No separate database server is required.
+Compose runs `web` (nginx serving the UI and proxying `/api` and `/healthz`), published on `127.0.0.1:8765` by default, and `api` (uvicorn as a non-root user), reachable only inside the Compose network. SQLite lives in the `ichnos-data` volume, and migrations run when the API starts. An optional `ollama` service starts only with `--profile ollama` (ADR-0006). See the [self-hosting guide](/project/self-hosting.md).
 
 # API scope
 
@@ -206,7 +214,7 @@ POST  /api/query
 GET   /api/traceability/{artifact_id}
 ```
 
-Every write-capable operation first creates a pending approval. The approval endpoint executes the exact persisted payload.
+Every operation that writes to GitHub first creates a pending approval; the approval endpoint executes the exact persisted payload. Implemented in Phase 1: `GET /healthz`, `GET /api/config`, `GET`/`POST /api/workspaces`, `GET`/`PATCH /api/workspaces/{workspace_id}` and `POST /api/workspaces/{workspace_id}/github-check`. The committed contract is `packages/contracts/openapi.json`.
 
 # GitHub conventions
 
@@ -270,10 +278,10 @@ Closes #456
 | LangGraph mandatory or behind an adapter | Phase 3 | Mandatory, thin adapter interface |
 | Default retrieval store | Phase 2 | SQLite + embeddings, OKF links as the graph |
 | Run updates: polling, SSE or WebSockets | Phase 3 | SSE |
-| GitHub OAuth, PAT or both | Phase 1 | Fine-grained PAT first |
-| Ollama in Docker Compose | Phase 1 | Optional profile |
+| GitHub OAuth, PAT or both | Phase 1 | Decided: fine-grained PAT ([ADR-0004](/adr/0004-github-access-fine-grained-pat.md)) |
+| Ollama in Docker Compose | Phase 1 | Decided: optional profile ([ADR-0006](/adr/0006-ollama-optional-compose-profile.md)) |
 | Slack in first release | Phase 4 | Later adapter |
-| One or many repositories per workspace | Phase 1 | One |
+| One or many repositories per workspace | Phase 1 | Decided: one ([ADR-0005](/adr/0005-one-repository-per-workspace.md)) |
 | Format of browser-edited drafts | Phase 3 | SQLite until approved, then OKF Markdown |
 
 [^brd]: Ichnos MVP — Business Requirements

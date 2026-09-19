@@ -1,0 +1,19 @@
+{
+  "name": "@ichnos/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "OpenAPI contract of the Ichnos API and TypeScript types generated from it.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./openapi.json": "./openapi.json"
+  },
+  "scripts": {
+    "generate": "openapi-typescript openapi.json -o src/schema.ts",
+    "typecheck": "tsc -p ."
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.13.0",
+    "typescript": "^5.9.3"
+  }
+}
