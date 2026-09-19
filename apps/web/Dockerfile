@@ -2,7 +2,7 @@
 # Build context: repository root (pnpm needs the whole workspace).
 
 # ---- Build: install the workspace and build the static UI ----
-FROM node:22-slim AS build
+FROM node:25-slim AS build
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 RUN corepack enable
 WORKDIR /repo
