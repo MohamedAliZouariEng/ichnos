@@ -12,6 +12,7 @@ from ichnos.db.models import AuditEvent, Run, Workspace
 from ichnos.github.reader import GitHubError, GitHubReader
 from ichnos.sync.documents import sync_documents
 from ichnos.sync.history import sync_comments, sync_commits, sync_issues
+from ichnos.sync.index import sync_index
 from ichnos.sync.links import sync_links
 
 logger = logging.getLogger(__name__)
@@ -23,6 +24,7 @@ STAGES: list[tuple[str, Stage]] = [
     ("comments", sync_comments),
     ("commits", sync_commits),
     ("links", sync_links),
+    ("index", sync_index),
 ]
 STALE_AFTER = dt.timedelta(minutes=30)
 

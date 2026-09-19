@@ -128,6 +128,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workspaces/{workspace_id}/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search
+         * @description Full-text search over documents, Issues, pull requests, comments and commits.
+         */
+        get: operations["searchKnowledge"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/workspaces/{workspace_id}/sync": {
         parameters: {
             query?: never;
@@ -256,6 +276,11 @@ export interface components {
              */
             database: "ok" | "unavailable";
             /**
+             * Search
+             * @enum {string}
+             */
+            search: "ok" | "unavailable";
+            /**
              * Status
              * @enum {string}
              */
@@ -283,6 +308,23 @@ export interface components {
             target_key: string;
             /** Target Kind */
             target_kind: string;
+        };
+        /** SearchHit */
+        SearchHit: {
+            /** Heading */
+            heading: string | null;
+            /** Score */
+            score: number;
+            /** Snippet */
+            snippet: string;
+            /** Source Key */
+            source_key: string;
+            /** Source Kind */
+            source_kind: string;
+            /** Start Line */
+            start_line: number | null;
+            /** Title */
+            title: string | null;
         };
         /** ServerConfig */
         ServerConfig: {
@@ -727,6 +769,47 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LinkRead"][];
+                };
+            };
+            /** @description Workspace not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    searchKnowledge: {
+        parameters: {
+            query: {
+                q: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchHit"][];
                 };
             };
             /** @description Workspace not found */

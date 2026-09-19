@@ -83,7 +83,9 @@ def _sync(client: TestClient, workspace_id: str) -> dict[str, int]:
     assert run["status"] == "succeeded", run
     counts: dict[str, int] = run["counts"]
     return {
-        key: value for key, value in counts.items() if not key.startswith(("documents_", "links_"))
+        key: value
+        for key, value in counts.items()
+        if not key.startswith(("documents_", "links_", "chunks_"))
     }
 
 

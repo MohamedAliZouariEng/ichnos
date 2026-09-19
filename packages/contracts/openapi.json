@@ -227,6 +227,14 @@
             "title": "Database",
             "type": "string"
           },
+          "search": {
+            "enum": [
+              "ok",
+              "unavailable"
+            ],
+            "title": "Search",
+            "type": "string"
+          },
           "status": {
             "enum": [
               "ok",
@@ -243,7 +251,8 @@
         "required": [
           "status",
           "version",
-          "database"
+          "database",
+          "search"
         ],
         "title": "Health",
         "type": "object"
@@ -299,6 +308,70 @@
           "resolved"
         ],
         "title": "LinkRead",
+        "type": "object"
+      },
+      "SearchHit": {
+        "properties": {
+          "heading": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Heading"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "snippet": {
+            "title": "Snippet",
+            "type": "string"
+          },
+          "source_key": {
+            "title": "Source Key",
+            "type": "string"
+          },
+          "source_kind": {
+            "title": "Source Kind",
+            "type": "string"
+          },
+          "start_line": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Line"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "source_kind",
+          "source_key",
+          "title",
+          "heading",
+          "snippet",
+          "start_line",
+          "score"
+        ],
+        "title": "SearchHit",
         "type": "object"
       },
       "ServerConfig": {
@@ -1217,6 +1290,79 @@
           }
         },
         "summary": "List Links",
+        "tags": [
+          "knowledge"
+        ]
+      }
+    },
+    "/api/workspaces/{workspace_id}/search": {
+      "get": {
+        "description": "Full-text search over documents, Issues, pull requests, comments and commits.",
+        "operationId": "searchKnowledge",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 10,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SearchHit"
+                  },
+                  "title": "Response Searchknowledge",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Workspace not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Search",
         "tags": [
           "knowledge"
         ]

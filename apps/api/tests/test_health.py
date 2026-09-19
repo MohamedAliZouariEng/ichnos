@@ -9,7 +9,12 @@ def test_healthz_reports_ok() -> None:
     with TestClient(create_app(Settings())) as client:
         response = client.get("/healthz")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok", "version": __version__, "database": "ok"}
+    assert response.json() == {
+        "status": "ok",
+        "version": __version__,
+        "database": "ok",
+        "search": "ok",
+    }
 
 
 def test_healthz_reports_unavailable_database() -> None:
