@@ -4,8 +4,8 @@ title: Ichnos MVP — Technical Specification
 description: Information model, agent workflow, architecture, API, GitHub conventions and security design for the Ichnos MVP.
 tags: [ichnos, mvp, architecture, langgraph, okf]
 status: stable
-generated: { by: claude/opus-5, at: 2026-09-19T21:11:24Z }
-verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T21:11:24Z }
+generated: { by: claude/opus-5, at: 2026-09-19T21:22:44Z }
+verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T21:22:44Z }
 sources:
   - id: prd
     resource: https://docs.sylergy.net/s/documentation/p/athar-XwmmVmIjhs
@@ -41,6 +41,10 @@ Key decisions are recorded as ADRs:
 - [ADR-0012: Model providers](/adr/0012-model-providers.md)
 - [ADR-0013: Live run updates through Server-Sent Events](/adr/0013-live-run-updates.md)
 - [ADR-0014: Drafts and versions live in SQLite until approved](/adr/0014-drafts-and-versions.md)
+- [ADR-0015: Pending actions and one write client](/adr/0015-pending-actions-and-one-write-client.md)
+- [ADR-0016: Approver session and identity](/adr/0016-approver-session-and-identity.md)
+- [ADR-0017: How Ichnos writes to GitHub](/adr/0017-how-ichnos-writes-to-github.md)
+- [ADR-0018: Slack deferred](/adr/0018-slack-deferred.md)
 
 # Information model
 
@@ -293,7 +297,7 @@ Closes #456
 | Run updates: polling, SSE or WebSockets | Phase 3 | Decided: SSE with a persisted event log ([ADR-0013](/adr/0013-live-run-updates.md)) |
 | GitHub OAuth, PAT or both | Phase 1 | Decided: fine-grained PAT ([ADR-0004](/adr/0004-github-access-fine-grained-pat.md)) |
 | Ollama in Docker Compose | Phase 1 | Decided: optional profile ([ADR-0006](/adr/0006-ollama-optional-compose-profile.md)) |
-| Slack in first release | Phase 4 | Later adapter |
+| Slack in first release | Phase 4 | Decided: later adapter ([ADR-0018](/adr/0018-slack-deferred.md)) |
 | One or many repositories per workspace | Phase 1 | Decided: one ([ADR-0005](/adr/0005-one-repository-per-workspace.md)) |
 | Format of browser-edited drafts | Phase 3 | Decided: versions in SQLite until approved ([ADR-0014](/adr/0014-drafts-and-versions.md)) |
 

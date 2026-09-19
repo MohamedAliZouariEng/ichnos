@@ -1,6 +1,8 @@
 # Documentation Update Log
 
 ## 2026-09-19
+* **Creation**: Added [ADR-0015](/adr/0015-pending-actions-and-one-write-client.md), [ADR-0016](/adr/0016-approver-session-and-identity.md), [ADR-0017](/adr/0017-how-ichnos-writes-to-github.md) and [ADR-0018](/adr/0018-slack-deferred.md).
+* **Update**: Settled the last open decision in the [technical specification](/specs/ichnos-mvp/techspec.md).
 * **Update**: Added model configuration and BRD drafting to the [self-hosting guide](/project/self-hosting.md), and offline workflows to the [development guide](/project/development.md).
 * **Update**: Aligned the [technical specification](/specs/ichnos-mvp/techspec.md) with Phase 3: layout and API scope.
 * **Creation**: Added [ADR-0011](/adr/0011-workflow-engine.md), [ADR-0012](/adr/0012-model-providers.md), [ADR-0013](/adr/0013-live-run-updates.md) and [ADR-0014](/adr/0014-drafts-and-versions.md).
