@@ -144,3 +144,19 @@ docker compose up --build --wait
 
 [^adr-0004]: ADR-0004: GitHub access through a fine-grained personal access token
 [^adr-0006]: ADR-0006: Ollama as an optional Docker Compose profile
+
+## Approvals and writing to GitHub
+
+Ichnos reads a repository freely, but it writes to GitHub only after a person approves the exact change ([ADR-0015](/adr/0015-pending-actions-and-one-write-client.md)).
+
+**Token.** Give `ICHNOS_GITHUB_TOKEN` a fine-grained token for the one repository, with read and write access to Contents, Pull requests and Issues. The token's owner is the approver: publishing records `verified: human:<their login>` ([ADR-0016](/adr/0016-approver-session-and-identity.md)).
+
+**Passphrase.** Set `ICHNOS_APPROVER_PASSWORD` in `.env` and restart. Without it, Ichnos can propose writes but nobody can approve them. Use **Sign in to approve** in the top bar. A session ends after `ICHNOS_SESSION_IDLE_HOURS` idle hours (8 by default) or when the API restarts. Five wrong passphrases in five minutes lock sign-in for five minutes.
+
+**What approving checks.** The Approval Center shows the full payload: every file of a pull request, or every Issue with its body. Approving is refused, and nothing is written, when the action changed since you opened it, when it was prepared for another approver, or when the stored payload no longer matches its hash. An action becomes **stale**, again with nothing written, when the draft was edited after proposing or when a file it touches changed on GitHub. Propose it again to rebuild it on the current files.
+
+**Publishing a BRD.** On a draft's page, **Publish…** proposes one pull request on an `ichnos/…` branch: the BRD as a `stable`, human-verified concept, any pasted meeting notes, index entries and a `log.md` line ([ADR-0017](/adr/0017-how-ichnos-writes-to-github.md)). Ichnos never merges. Review and merge the pull request on GitHub yourself.
+
+**Planning.** An approved BRD can be planned once: **Plan Epic and Stories** drafts one Epic and three to five Stories, then waits for your approval before creating any Issue. You can edit the Issues' titles and bodies before approving; the edited text is what gets written. Merge the BRD's pull request **before** planning, so Ichnos can propose recording the Issue numbers in the BRD. If you planned first, use **Link Issues into the BRD** on the planning run's page after merging.
+
+**Working with two repositories.** Ichnos's own repository and the repository it writes to look alike on GitHub. When you merge from the command line, always name the repository: `gh pr merge <number> --repo <owner>/<name>`.

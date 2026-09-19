@@ -233,6 +233,8 @@ GET   /api/traceability/{artifact_id}
 
 Every operation that writes to GitHub first creates a pending approval; the approval endpoint executes the exact persisted payload. Implemented so far: health and configuration (`GET /healthz`, `GET /api/config`); workspaces (`GET`/`POST /api/workspaces`, `GET`/`PATCH /api/workspaces/{workspace_id}`, `POST …/github-check`); sync (`POST …/sync`, `GET …/sync-runs`, `DELETE …/knowledge`); knowledge (`GET …/documents`, `GET …/documents/detail`, `GET …/github/items`, `GET …/links`, `GET …/search`); models (`POST /api/config/model-check`); intake (`POST …/sources`, `POST …/sources/from-document`, `GET …/sources`); runs (`POST …/runs`, `GET …/runs`, `GET /api/runs/{run_id}`, `GET /api/runs/{run_id}/events` as Server-Sent Events); artifacts (`GET …/artifacts`, `GET /api/artifacts/{artifact_id}`, `GET`/`POST …/versions`, `POST …/validate`). The committed contract is `packages/contracts/openapi.json`.
 
+Phase 4 adds approvals ([ADR-0015](/adr/0015-pending-actions-and-one-write-client.md)): `GET`, `POST` and `DELETE /api/session`; `GET /api/workspaces/{id}/approvals` and `GET /api/approvals/{id}`; `POST /api/approvals/{id}/approve`, `/reject` and `/revise`; `POST /api/artifacts/{id}/publish` and `/plan`; and `POST /api/runs/{id}/link-issues`.
+
 # GitHub conventions
 
 ## Labels
