@@ -994,3 +994,9 @@ mark {
   border-bottom: 1px dashed var(--rule);
   color: var(--graphite);
 }
+
+/* Short identifiers such as human:local stay on one line in tables. */
+.table td.path {
+  overflow-wrap: normal;
+  white-space: nowrap;
+}
