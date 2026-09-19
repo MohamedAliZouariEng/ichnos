@@ -1022,3 +1022,39 @@ mark {
 .session__form input {
   width: 14rem;
 }
+
+/* ---- Approval Center (Phase 4) ---- */
+.payload-text {
+  max-height: 24rem;
+  margin: 0.5rem 0 0;
+  overflow: auto;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  white-space: pre-wrap;
+}
+
+.payload-file {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.payload-file summary {
+  cursor: pointer;
+}
+
+.issue-card {
+  margin: 0.75rem 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+}
+
+.issue-card h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1rem;
+}
+
+.decision textarea {
+  width: 100%;
+  margin: 0.4rem 0;
+}
