@@ -3,6 +3,9 @@
 A workflow is a list of stages. Each stage is a plain function that takes the pipeline state
 and a context and returns updates; LangGraph only wires the stages together and checkpoints
 the state. Every stage change is written to run_events as it happens (ADR-0013).
+
+A stage marked waits=True pauses at a LangGraph interrupt: the run becomes `waiting`, and
+resume_run continues it from its SQLite checkpoint with a decision, even after a restart.
 """
 
 import logging
@@ -16,6 +19,7 @@ from typing import Any, TypedDict
 
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import END, START, StateGraph
+from langgraph.types import Command, interrupt
 from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -56,6 +60,7 @@ class Stage:
     name: str
     run: Callable[[Data, StageContext], Data]
     describe: Callable[[Data], str] | None = None
+    waits: bool = False  # pause for a human decision first (a LangGraph interrupt)
 
 
 def record_event(
@@ -87,6 +92,9 @@ def _wrap(stage: Stage, context: StageContext) -> Callable[..., PipelineState]:
 
     def node(state: PipelineState) -> PipelineState:
         data = dict(state.get("data", {}))
+        if stage.waits:
+            # First arrival pauses the graph here; resuming returns the decision.
+            data["decision"] = interrupt({"stage": stage.name, "run_id": context.run_id})
         context.stage = stage.name
         record_event(context.factory, context.run_id, "stage.started", stage.name, stage=stage.name)
         started = time.monotonic()
@@ -123,6 +131,75 @@ def _wrap(stage: Stage, context: StageContext) -> Callable[..., PipelineState]:
     return node
 
 
+def _usage(prior: Any, usage: Usage) -> dict[str, int]:
+    base = prior if isinstance(prior, dict) else {}
+    return {key: int(base.get(key, 0)) + value for key, value in usage.as_dict().items()}
+
+
+def _execute(
+    factory: sessionmaker[Session],
+    run_id: str,
+    stages: list[Stage],
+    graph_input: Any,
+    *,
+    checkpoint_path: Path,
+    services: Mapping[str, Any] | None,
+) -> None:
+    with factory() as session:
+        run = session.get(Run, run_id)
+        if run is None:
+            raise LookupError(run_id)
+        workspace_id = run.workspace_id
+    context = StageContext(run_id, workspace_id, factory, services or {})
+
+    builder = StateGraph(PipelineState)
+    previous = START
+    for stage in stages:
+        builder.add_node(stage.name, _wrap(stage, context))
+        builder.add_edge(previous, stage.name)
+        previous = stage.name
+    builder.add_edge(previous, END)
+
+    config: Any = {"configurable": {"thread_id": run_id}}
+    error: str | None = None
+    paused = False
+    result: dict[str, Any] = {}
+    connection = sqlite3.connect(checkpoint_path, check_same_thread=False)
+    try:
+        graph = builder.compile(checkpointer=SqliteSaver(connection))
+        result = graph.invoke(graph_input, config=config)
+        paused = bool(graph.get_state(config).next)
+    except StageFailed as exc:
+        error = str(exc)
+    except Exception:
+        logger.exception("Run %s failed outside a stage", run_id)
+        error = UNEXPECTED
+    finally:
+        connection.close()
+
+    waiting = paused and error is None
+    with factory() as session:
+        run = session.get(Run, run_id)
+        assert run is not None
+        outputs = dict(run.outputs or {})
+        outputs["usage"] = _usage(outputs.get("usage"), context.usage)
+        if waiting:
+            run.status = "waiting"
+        else:
+            run.status = "failed" if error else "succeeded"
+            run.error = error
+            run.finished_at = utc_now()
+            outputs["result"] = dict(result.get("data", {})).get("result", {})
+        run.outputs = outputs
+        session.commit()
+    if waiting:
+        record_event(factory, run_id, "run.waiting", "Waiting for a human decision")
+    elif error:
+        record_event(factory, run_id, "run.failed", error)
+    else:
+        record_event(factory, run_id, "run.completed", "Run completed")
+
+
 def run_pipeline(
     factory: sessionmaker[Session],
     run_id: str,
@@ -133,52 +210,36 @@ def run_pipeline(
     services: Mapping[str, Any] | None = None,
 ) -> None:
     """Execute the stages in order; the run's status, events and outputs record everything."""
-    with factory() as session:
-        run = session.get(Run, run_id)
-        if run is None:
-            raise LookupError(run_id)
-        workspace_id = run.workspace_id
-    context = StageContext(run_id, workspace_id, factory, services or {})
     record_event(factory, run_id, "run.started", "Run started", status="running")
+    _execute(
+        factory,
+        run_id,
+        stages,
+        {"data": initial},
+        checkpoint_path=checkpoint_path,
+        services=services,
+    )
 
-    builder = StateGraph(PipelineState)
-    previous = START
-    for stage in stages:
-        builder.add_node(stage.name, _wrap(stage, context))
-        builder.add_edge(previous, stage.name)
-        previous = stage.name
-    builder.add_edge(previous, END)
 
-    error: str | None = None
-    result: dict[str, Any] = {}
-    connection = sqlite3.connect(checkpoint_path, check_same_thread=False)
-    try:
-        graph = builder.compile(checkpointer=SqliteSaver(connection))
-        result = graph.invoke({"data": initial}, config={"configurable": {"thread_id": run_id}})
-    except StageFailed as exc:
-        error = str(exc)
-    except Exception:
-        logger.exception("Run %s failed outside a stage", run_id)
-        error = UNEXPECTED
-    finally:
-        connection.close()
-
-    with factory() as session:
-        run = session.get(Run, run_id)
-        assert run is not None
-        run.status = "failed" if error else "succeeded"
-        run.error = error
-        run.finished_at = utc_now()
-        run.outputs = {
-            **(run.outputs or {}),
-            "usage": context.usage.as_dict(),
-            "result": dict(result.get("data", {})).get("result", {}),
-        }
-        session.commit()
-    if error:
-        record_event(factory, run_id, "run.failed", error)
-    else:
-        record_event(factory, run_id, "run.completed", "Run completed")
+def resume_pipeline(
+    factory: sessionmaker[Session],
+    run_id: str,
+    stages: list[Stage],
+    decision: Data,
+    *,
+    checkpoint_path: Path,
+    services: Mapping[str, Any] | None = None,
+) -> None:
+    """Continue a waiting run from its checkpoint; finished stages do not run again."""
+    record_event(factory, run_id, "run.resumed", "Run resumed after a decision", status="running")
+    _execute(
+        factory,
+        run_id,
+        stages,
+        Command(resume=decision),
+        checkpoint_path=checkpoint_path,
+        services=services,
+    )
 
 
 class WorkflowRunner:
@@ -194,7 +255,7 @@ class WorkflowRunner:
         self._futures[run_id] = self._executor.submit(job)
 
     def wait(self, run_id: str, timeout: float | None = None) -> None:
-        """Block until a run finishes; used by tests and scripts."""
+        """Block until the run's latest job finishes; used by tests and scripts."""
         future = self._futures.get(run_id)
         if future is not None:
             future.result(timeout=timeout)
@@ -238,8 +299,31 @@ def start_run(
     return run_id
 
 
+def resume_run(
+    factory: sessionmaker[Session],
+    runner: WorkflowRunner,
+    run_id: str,
+    *,
+    stages: list[Stage],
+    decision: Data,
+    checkpoint_path: Path,
+    services: Mapping[str, Any] | None = None,
+) -> None:
+    """Hand a waiting run's continuation to the background pool."""
+
+    def job() -> None:
+        resume_pipeline(
+            factory, run_id, stages, decision, checkpoint_path=checkpoint_path, services=services
+        )
+
+    runner.submit(run_id, job)
+
+
 def mark_interrupted(factory: sessionmaker[Session]) -> int:
-    """At startup nothing can be running: mark leftover runs interrupted; checkpoints remain."""
+    """At startup nothing can be running: mark leftover runs interrupted; checkpoints remain.
+
+    Waiting runs are untouched: they wait for a human, not for this process.
+    """
     message = "The API stopped while this run was in progress."
     with factory() as session:
         runs = session.scalars(select(Run).where(Run.status.in_(("queued", "running")))).all()

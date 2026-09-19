@@ -4,6 +4,12 @@ const TONES: Record<string, string> = {
   succeeded: "ok",
   failed: "bad",
   interrupted: "warn",
+  waiting: "warn",
+  pending: "warn",
+  approved: "info",
+  executed: "ok",
+  rejected: "muted",
+  stale: "warn",
 };
 
 export function StatusBadge({ status }: { status: string }) {

@@ -1,14 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
 
-export type Section = "workspace" | "inbox" | "github" | "runs" | "artifacts";
+export type Section = "workspace" | "inbox" | "github" | "runs" | "artifacts" | "approvals";
 export type Route = {
   section: Section;
   doc?: string | undefined;
   run?: string | undefined;
   artifact?: string | undefined;
+  approval?: string | undefined;
 };
 
-const SECTIONS: readonly Section[] = ["workspace", "inbox", "github", "runs", "artifacts"];
+const SECTIONS: readonly Section[] = [
+  "workspace",
+  "inbox",
+  "github",
+  "runs",
+  "artifacts",
+  "approvals",
+];
 
 export function parseRoute(hash: string): Route {
   const [name = "", query = ""] = hash.replace(/^#\/?/, "").split("?");
@@ -19,6 +27,7 @@ export function parseRoute(hash: string): Route {
     doc: params.get("doc") ?? undefined,
     run: params.get("run") ?? undefined,
     artifact: params.get("artifact") ?? undefined,
+    approval: params.get("approval") ?? undefined,
   };
 }
 
@@ -27,6 +36,7 @@ export function routeHash(route: Route): string {
   if (route.doc) params.set("doc", route.doc);
   if (route.run) params.set("run", route.run);
   if (route.artifact) params.set("artifact", route.artifact);
+  if (route.approval) params.set("approval", route.approval);
   const query = params.toString();
   return `#/${route.section}${query ? `?${query}` : ""}`;
 }

@@ -36,6 +36,10 @@ class Settings(BaseSettings):
 
     # Workflow engine (ADR-0011).
     workflow_workers: int = 2
+
+    # Approvals (ADR-0016): no passphrase means Ichnos can propose writes but never approve them.
+    approver_password: SecretStr | None = None
+    session_idle_hours: float = 8.0
     embedding_provider: str | None = None
     embedding_model: str | None = None
     embedding_base_url: str | None = None

@@ -1,8 +1,10 @@
 import { useState } from "react";
 
 import { HealthBadge } from "./components/HealthBadge";
+import { SessionControl } from "./components/SessionControl";
 import { WorkspaceSwitcher } from "./components/WorkspaceSwitcher";
 import { GitHubPanel } from "./features/github/GitHubPanel";
+import { ApprovalsPanel } from "./features/approvals/ApprovalsPanel";
 import { ArtifactsPanel } from "./features/artifacts/ArtifactsPanel";
 import { InboxPanel } from "./features/inbox/InboxPanel";
 import { RunsPanel } from "./features/runs/RunsPanel";
@@ -10,7 +12,7 @@ import { WorkspacePanel } from "./features/workspace/WorkspacePanel";
 import { type Section, useRoute } from "./route";
 import { useWorkspaces } from "./workspaces";
 
-const CURRENT_PHASE = 3;
+const CURRENT_PHASE = 4;
 
 // Ordered the way work flows through Ichnos; each section names the phase that delivers it.
 const SECTIONS: { id: string; section?: Section; label: string; phase: number }[] = [
@@ -19,7 +21,7 @@ const SECTIONS: { id: string; section?: Section; label: string; phase: number }[
   { id: "github", section: "github", label: "GitHub context", phase: 2 },
   { id: "runs", section: "runs", label: "Workflow runs", phase: 3 },
   { id: "artifacts", section: "artifacts", label: "Artifacts", phase: 3 },
-  { id: "approvals", label: "Approvals", phase: 4 },
+  { id: "approvals", section: "approvals", label: "Approvals", phase: 4 },
   { id: "traceability", label: "Traceability", phase: 6 },
 ];
 
@@ -46,6 +48,17 @@ export function App() {
         />
       );
     }
+    if (section === "approvals" && selected) {
+      return (
+        <ApprovalsPanel
+          key={selected.id}
+          workspace={selected}
+          approvalId={route.approval}
+          onOpenApproval={(id) => navigate({ section: "approvals", approval: id })}
+          onCloseApproval={() => navigate({ section: "approvals" })}
+        />
+      );
+    }
     if (section === "artifacts" && selected) {
       return (
         <ArtifactsPanel
@@ -54,6 +67,8 @@ export function App() {
           artifactId={route.artifact}
           onOpenArtifact={(id) => navigate({ section: "artifacts", artifact: id })}
           onCloseArtifact={() => navigate({ section: "artifacts" })}
+          onOpenApproval={(id) => navigate({ section: "approvals", approval: id })}
+          onOpenRun={(id) => navigate({ section: "runs", run: id })}
         />
       );
     }
@@ -136,7 +151,10 @@ export function App() {
             }}
             onCreate={() => setCreating(true)}
           />
-          <HealthBadge />
+          <div className="topbar__right">
+            <SessionControl />
+            <HealthBadge />
+          </div>
         </header>
         <main className="content">{content()}</main>
       </div>

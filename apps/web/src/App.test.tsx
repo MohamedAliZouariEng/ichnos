@@ -53,7 +53,7 @@ describe("App", () => {
   it("shows later phases as unavailable", async () => {
     mockShell();
     render(<App />);
-    expect(await screen.findByText("Approvals")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Approvals" })).not.toBeInTheDocument();
+    expect(await screen.findByText("Traceability")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Traceability" })).not.toBeInTheDocument();
   });
 });
