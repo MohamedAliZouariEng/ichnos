@@ -11,6 +11,8 @@ type Props = {
   artifactId?: string | undefined;
   onOpenArtifact: (artifactId: string) => void;
   onCloseArtifact: () => void;
+  onOpenApproval?: ((approvalId: string) => void) | undefined;
+  onOpenRun?: ((runId: string) => void) | undefined;
   validateDelayMs?: number | undefined;
 };
 
@@ -19,6 +21,8 @@ export function ArtifactsPanel({
   artifactId,
   onOpenArtifact,
   onCloseArtifact,
+  onOpenApproval,
+  onOpenRun,
   validateDelayMs,
 }: Props) {
   const [artifacts, setArtifacts] = useState<ArtifactSummary[] | null>(null);
@@ -48,6 +52,8 @@ export function ArtifactsPanel({
       <ArtifactReview
         artifactId={artifactId}
         onBack={onCloseArtifact}
+        onOpenApproval={onOpenApproval}
+        onOpenRun={onOpenRun}
         validateDelayMs={validateDelayMs}
       />
     );

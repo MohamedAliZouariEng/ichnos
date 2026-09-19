@@ -5,6 +5,7 @@ payload still matches its hash, it was prepared for this approver, the artifact 
 and nothing it touches changed on GitHub. Only then is a ticket issued and the write executed.
 """
 
+import copy
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
@@ -268,3 +269,56 @@ def approve(
             partial = getattr(exc, "partial", None)  # Issues created before the failure
             return _finish(session, approval, FAILED, approver, error=str(exc), result=partial)
     return _finish(session, approval, EXECUTED, approver, result=result)
+
+
+PARENT_LINE = "- Epic: #{epic}"
+
+
+def _clean_issue(spec: Payload, what: str) -> tuple[str, str]:
+    title = " ".join(str(spec.get("title", "")).split())
+    body = str(spec.get("body", "")).strip()
+    if not title or not body:
+        raise ApprovalError(400, f"{what} needs a title and a body.")
+    if len(title) > 256:
+        raise ApprovalError(400, f"{what}: titles are limited to 256 characters.")
+    return title, body + "\n"
+
+
+def revise(
+    session: Session,
+    approval_id: str,
+    *,
+    approver: str,
+    shown_hash: str,
+    epic: Payload,
+    stories: list[Payload],
+) -> Approval:
+    """Edit the titles and bodies of a pending create_issues action; the hash changes."""
+    approval = _pending(session, approval_id)
+    if approval.action_type != "create_issues":
+        raise ApprovalError(
+            409, "Documentation changes are made in the artifact: edit it, then publish again."
+        )
+    if shown_hash != approval.payload_hash:
+        raise ApprovalError(409, "This action changed since you opened it; reload it first.")
+    prepared_for = (approval.payload or {}).get("approver")
+    if prepared_for and prepared_for != approver:
+        raise ApprovalError(409, f"This action was prepared for {prepared_for}.")
+
+    payload = copy.deepcopy(approval.payload)
+    payload["epic"]["title"], payload["epic"]["body"] = _clean_issue(epic, "The Epic")
+    by_key = {story["key"]: story for story in payload["stories"]}
+    for change in stories:
+        key = str(change.get("key", ""))
+        target = by_key.get(key)
+        if target is None:
+            raise ApprovalError(400, f"Unknown story {key}.")
+        title, body = _clean_issue(change, key)
+        if PARENT_LINE not in body:
+            raise ApprovalError(400, f"{key} must keep its ## Parent line: {PARENT_LINE}")
+        target["title"], target["body"] = title, body
+    approval.payload = payload
+    approval.payload_hash = payload_hash(payload)
+    _audit(session, "approval.revised", approval, approver, payload_hash=approval.payload_hash)
+    session.commit()
+    return approval

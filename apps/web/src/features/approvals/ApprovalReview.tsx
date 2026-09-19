@@ -4,6 +4,7 @@ import type { ApprovalDetail, ApproverSession } from "@ichnos/api-client";
 import { api } from "../../api";
 import { UNREACHABLE, detailOf } from "../../labels";
 import { StatusBadge } from "../runs/StatusBadge";
+import { IssuesEditor } from "./IssuesEditor";
 import { ACTION_LABEL, type DocsPayload, type IssueSpec, type IssuesPayload } from "./payload";
 
 function DocsView({ payload, base }: { payload: DocsPayload; base: Record<string, unknown> }) {
@@ -120,6 +121,7 @@ export function ApprovalReview({ approvalId, onBack }: Props) {
   const [session, setSession] = useState<ApproverSession | null>(null);
   const [failed, setFailed] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -264,6 +266,11 @@ export function ApprovalReview({ approvalId, onBack }: Props) {
                 <button type="button" onClick={() => setConfirming(true)}>
                   Approve…
                 </button>
+                {payload.kind === "create_issues" && !editing && (
+                  <button type="button" className="button--secondary" onClick={() => setEditing(true)}>
+                    Edit Issues…
+                  </button>
+                )}
               </div>
               <label htmlFor="reject-note">Reject with a note (optional)</label>
               <textarea
@@ -292,7 +299,17 @@ export function ApprovalReview({ approvalId, onBack }: Props) {
         </section>
       )}
 
-      {payload.kind === "docs_pull_request" ? (
+      {editing && payload.kind === "create_issues" ? (
+        <IssuesEditor
+          approval={approval}
+          payload={payload}
+          onSaved={(saved) => {
+            setApproval(saved);
+            setEditing(false);
+          }}
+          onCancel={() => setEditing(false)}
+        />
+      ) : payload.kind === "docs_pull_request" ? (
         <DocsView payload={payload} base={approval.base} />
       ) : (
         <IssuesView payload={payload} />

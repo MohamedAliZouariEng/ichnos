@@ -119,3 +119,23 @@ describe("ApprovalsPanel", () => {
     expect(screen.queryByRole("button", { name: "Approve…" })).not.toBeInTheDocument();
   });
 });
+
+describe("Editing a plan", () => {
+  it("saves edited Issues and shows the new text", async () => {
+    const revised = {
+      ...ISSUES,
+      payload_hash: "b".repeat(64),
+      payload: {
+        ...ISSUES.payload,
+        stories: [{ ...ISSUES.payload.stories[0], title: "Expire invitations after 7 days" }],
+      },
+    };
+    review(ISSUES, { "POST /api/approvals/ap-2/revise": () => jsonResponse(200, revised) });
+    fireEvent.click(await screen.findByRole("button", { name: "Edit Issues…" }));
+    fireEvent.change(screen.getByLabelText("S-1 title"), {
+      target: { value: "Expire invitations after 7 days" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(await screen.findByText("S-1: Expire invitations after 7 days")).toBeInTheDocument();
+  });
+});

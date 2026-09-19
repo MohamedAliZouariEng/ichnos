@@ -7,6 +7,7 @@ import { api } from "../../api";
 import { UNREACHABLE, detailOf } from "../../labels";
 import { StatusBadge } from "../runs/StatusBadge";
 import { citations, splitFrontmatter } from "./markdown";
+import { PublishPanel } from "./PublishPanel";
 import { VersionDiff } from "./VersionDiff";
 
 type Tab = "preview" | "edit" | "versions" | "changes";
@@ -50,9 +51,21 @@ export function Preview({ content }: { content: string }) {
   );
 }
 
-type Props = { artifactId: string; onBack: () => void; validateDelayMs?: number | undefined };
+type Props = {
+  artifactId: string;
+  onBack: () => void;
+  onOpenApproval?: ((approvalId: string) => void) | undefined;
+  onOpenRun?: ((runId: string) => void) | undefined;
+  validateDelayMs?: number | undefined;
+};
 
-export function ArtifactReview({ artifactId, onBack, validateDelayMs = 600 }: Props) {
+export function ArtifactReview({
+  artifactId,
+  onBack,
+  onOpenApproval,
+  onOpenRun,
+  validateDelayMs = 600,
+}: Props) {
   const [artifact, setArtifact] = useState<ArtifactDetail | null>(null);
   const [failed, setFailed] = useState(false);
   const [tab, setTab] = useState<Tab>("preview");
@@ -204,6 +217,8 @@ export function ArtifactReview({ artifactId, onBack, validateDelayMs = 600 }: Pr
           {message.text}
         </p>
       )}
+
+      <PublishPanel artifact={artifact} onOpenApproval={onOpenApproval} onOpenRun={onOpenRun} />
 
       <div className="tabs" role="tablist" aria-label="View">
         {TABS.map((item) => (

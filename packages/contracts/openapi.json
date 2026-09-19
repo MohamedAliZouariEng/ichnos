@@ -991,6 +991,27 @@
         "title": "Health",
         "type": "object"
       },
+      "IssueEdit": {
+        "additionalProperties": false,
+        "properties": {
+          "body": {
+            "maxLength": 65536,
+            "title": "Body",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 256,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "body"
+        ],
+        "title": "IssueEdit",
+        "type": "object"
+      },
       "KnowledgeReset": {
         "properties": {
           "deleted": {
@@ -1134,6 +1155,34 @@
           }
         },
         "title": "Rejection",
+        "type": "object"
+      },
+      "Revision": {
+        "additionalProperties": false,
+        "properties": {
+          "epic": {
+            "$ref": "#/components/schemas/IssueEdit"
+          },
+          "payload_hash": {
+            "maxLength": 64,
+            "minLength": 64,
+            "title": "Payload Hash",
+            "type": "string"
+          },
+          "stories": {
+            "items": {
+              "$ref": "#/components/schemas/StoryEdit"
+            },
+            "maxItems": 10,
+            "title": "Stories",
+            "type": "array"
+          }
+        },
+        "required": [
+          "payload_hash",
+          "epic"
+        ],
+        "title": "Revision",
         "type": "object"
       },
       "RunCreate": {
@@ -1775,6 +1824,33 @@
           "proposed_path"
         ],
         "title": "SourceRead",
+        "type": "object"
+      },
+      "StoryEdit": {
+        "additionalProperties": false,
+        "properties": {
+          "body": {
+            "maxLength": 65536,
+            "title": "Body",
+            "type": "string"
+          },
+          "key": {
+            "maxLength": 20,
+            "title": "Key",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 256,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "body",
+          "key"
+        ],
+        "title": "StoryEdit",
         "type": "object"
       },
       "SyncRunRead": {
@@ -2582,6 +2658,87 @@
           }
         },
         "summary": "Reject Action",
+        "tags": [
+          "approvals"
+        ]
+      }
+    },
+    "/api/approvals/{approval_id}/revise": {
+      "post": {
+        "description": "Edit a pending Issues plan; the new hash is what gets approved.",
+        "operationId": "reviseAction",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "approval_id",
+            "required": true,
+            "schema": {
+              "title": "Approval Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "ichnos_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ichnos Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Revision"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "No GitHub token configured"
+          },
+          "401": {
+            "description": "Sign in to approve"
+          },
+          "404": {
+            "description": "Approval not found"
+          },
+          "409": {
+            "description": "Not pending, changed since reviewed, or prepared for someone else"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revise Action",
         "tags": [
           "approvals"
         ]

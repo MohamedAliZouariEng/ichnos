@@ -12,7 +12,7 @@ from ichnos.api.planning import resume_if_waiting
 from ichnos.api.session import ApproverDep
 from ichnos.api.workspaces import NOT_FOUND, get_workspace_or_404
 from ichnos.approvals import verify
-from ichnos.approvals.service import ApprovalError, approve, reject
+from ichnos.approvals.service import ApprovalError, approve, reject, revise
 from ichnos.db.base import as_utc
 from ichnos.db.models import Approval
 
@@ -183,4 +183,47 @@ def reject_action(
     except ApprovalError as exc:
         raise HTTPException(exc.status, exc.message) from exc
     resume_if_waiting(request.app, settings, approval)
+    return _detail(approval)
+
+
+class IssueEdit(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    title: str = Field(max_length=256)
+    body: str = Field(max_length=65536)
+
+
+class StoryEdit(IssueEdit):
+    key: str = Field(max_length=20)
+
+
+class Revision(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    payload_hash: str = Field(min_length=64, max_length=64)
+    epic: IssueEdit
+    stories: list[StoryEdit] = Field(default_factory=list, max_length=10)
+
+
+@router.post(
+    "/api/approvals/{approval_id}/revise",
+    response_model=ApprovalDetail,
+    operation_id="reviseAction",
+    responses=DECISION_ERRORS,
+)
+def revise_action(
+    approval_id: str, body: Revision, approver: ApproverDep, session: SessionDep
+) -> ApprovalDetail:
+    """Edit a pending Issues plan; the new hash is what gets approved."""
+    try:
+        approval = revise(
+            session,
+            approval_id,
+            approver=approver.identity,
+            shown_hash=body.payload_hash,
+            epic=body.epic.model_dump(),
+            stories=[story.model_dump() for story in body.stories],
+        )
+    except ApprovalError as exc:
+        raise HTTPException(exc.status, exc.message) from exc
     return _detail(approval)

@@ -67,6 +67,8 @@ export function App() {
           artifactId={route.artifact}
           onOpenArtifact={(id) => navigate({ section: "artifacts", artifact: id })}
           onCloseArtifact={() => navigate({ section: "artifacts" })}
+          onOpenApproval={(id) => navigate({ section: "approvals", approval: id })}
+          onOpenRun={(id) => navigate({ section: "runs", run: id })}
         />
       );
     }

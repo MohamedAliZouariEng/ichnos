@@ -58,6 +58,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/approvals/{approval_id}/revise": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revise Action
+         * @description Edit a pending Issues plan; the new hash is what gets approved.
+         */
+        post: operations["reviseAction"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/artifacts/{artifact_id}": {
         parameters: {
             query?: never;
@@ -920,6 +940,13 @@ export interface components {
             /** Version */
             version: string;
         };
+        /** IssueEdit */
+        IssueEdit: {
+            /** Body */
+            body: string;
+            /** Title */
+            title: string;
+        };
         /** KnowledgeReset */
         KnowledgeReset: {
             /** Deleted */
@@ -969,6 +996,14 @@ export interface components {
         Rejection: {
             /** Note */
             note?: string | null;
+        };
+        /** Revision */
+        Revision: {
+            epic: components["schemas"]["IssueEdit"];
+            /** Payload Hash */
+            payload_hash: string;
+            /** Stories */
+            stories?: components["schemas"]["StoryEdit"][];
         };
         /** RunCreate */
         RunCreate: {
@@ -1166,6 +1201,15 @@ export interface components {
             reused: boolean;
             /** Size */
             size: number;
+            /** Title */
+            title: string;
+        };
+        /** StoryEdit */
+        StoryEdit: {
+            /** Body */
+            body: string;
+            /** Key */
+            key: string;
             /** Title */
             title: string;
         };
@@ -1471,6 +1515,71 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["Rejection"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalDetail"];
+                };
+            };
+            /** @description No GitHub token configured */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Sign in to approve */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Approval not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not pending, changed since reviewed, or prepared for someone else */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reviseAction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                approval_id: string;
+            };
+            cookie?: {
+                ichnos_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Revision"];
             };
         };
         responses: {

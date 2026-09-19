@@ -195,3 +195,76 @@ def test_rejected_plans_create_nothing(monkeypatch: pytest.MonkeyPatch, repo: Fa
         ).json()
     assert rejected["status"] == "rejected"
     assert repo.writes == [] and repo.issues == []
+
+
+def test_a_revised_plan_is_approved_as_edited(
+    monkeypatch: pytest.MonkeyPatch, repo: FakeGitRepo
+) -> None:
+    app = build(monkeypatch, repo)
+    with TestClient(app) as client:
+        approval_id = propose_issues(app)
+        assert client.post("/api/session", json={"password": PASSPHRASE}).status_code == 200
+        before = client.get(f"/api/approvals/{approval_id}").json()
+        story = before["payload"]["stories"][0]
+        revision = {
+            "payload_hash": before["payload_hash"],
+            "epic": {
+                "title": "Invitation lifecycle, hardened",
+                "body": before["payload"]["epic"]["body"],
+            },
+            "stories": [
+                {"key": "S-1", "title": "Expire invitations after 7 days", "body": story["body"]}
+            ],
+        }
+        revised = client.post(f"/api/approvals/{approval_id}/revise", json=revision).json()
+        assert revised["payload_hash"] != before["payload_hash"] and revised["hash_ok"]
+        stale = client.post(
+            f"/api/approvals/{approval_id}/approve", json={"payload_hash": before["payload_hash"]}
+        )
+        assert stale.status_code == 409
+        done = client.post(
+            f"/api/approvals/{approval_id}/approve", json={"payload_hash": revised["payload_hash"]}
+        ).json()
+    assert done["status"] == "executed"
+    assert repo.issues[0]["title"] == "Invitation lifecycle, hardened"
+    assert repo.issues[1]["title"] == "Expire invitations after 7 days"
+
+
+def test_revisions_keep_the_parent_line_and_apply_to_issues_only(
+    monkeypatch: pytest.MonkeyPatch, repo: FakeGitRepo
+) -> None:
+    app = build(monkeypatch, repo)
+    with TestClient(app) as client:
+        approval_id = propose_issues(app)
+        detail = client.get(f"/api/approvals/{approval_id}").json()
+        revision = {
+            "payload_hash": detail["payload_hash"],
+            "epic": {"title": "Epic", "body": "Body"},
+            "stories": [{"key": "S-1", "title": "Orphan", "body": "No parent here."}],
+        }
+        assert client.post(f"/api/approvals/{approval_id}/revise", json=revision).status_code == 401
+        assert client.post("/api/session", json={"password": PASSPHRASE}).status_code == 200
+        orphan = client.post(f"/api/approvals/{approval_id}/revise", json=revision)
+        assert orphan.status_code == 400 and "## Parent" in orphan.json()["detail"]
+
+        with app.state.session_factory() as session:
+            run_id = detail["run_id"]
+            docs = propose(
+                session,
+                run_id=run_id,
+                workspace_id=detail["workspace_id"],
+                action_type="docs_pull_request",
+                target="octo/quire",
+                branch="main",
+                payload={"kind": "docs_pull_request"},
+                base={},
+                summary="Docs",
+                proposed_by="human:octo",
+            )
+            docs_id, docs_hash = docs.id, docs.payload_hash
+        refused = client.post(
+            f"/api/approvals/{docs_id}/revise",
+            json={**revision, "payload_hash": docs_hash, "stories": []},
+        )
+    assert refused.status_code == 409 and "edit it, then publish again" in refused.json()["detail"]
+    assert repo.writes == []
