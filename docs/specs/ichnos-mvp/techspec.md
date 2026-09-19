@@ -4,8 +4,8 @@ title: Ichnos MVP — Technical Specification
 description: Information model, agent workflow, architecture, API, GitHub conventions and security design for the Ichnos MVP.
 tags: [ichnos, mvp, architecture, langgraph, okf]
 status: stable
-generated: { by: claude/opus-5, at: 2026-09-19T13:13:45Z }
-verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T13:13:45Z }
+generated: { by: claude/opus-5, at: 2026-09-19T15:34:39Z }
+verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T15:34:39Z }
 sources:
   - id: prd
     resource: https://docs.sylergy.net/s/documentation/p/athar-XwmmVmIjhs
@@ -154,31 +154,35 @@ Each run retains: input artifact IDs, repository and branch, retrieved context r
 ```text
 ichnos/
 ├── apps/
-│   ├── api/                 # FastAPI + LangGraph (Python package: ichnos)
-│   │   ├── app/
-│   │   │   ├── api/  artifacts/  approvals/  agents/  github/
-│   │   │   ├── okf/  retrieval/  runs/  settings/
-│   │   │   └── main.py
+│   ├── api/                     # FastAPI service; Python package `ichnos` (uv)
+│   │   ├── src/ichnos/
+│   │   │   ├── api/             # routers: health, config, workspaces
+│   │   │   ├── db/              # SQLAlchemy models, engine, Alembic migrations
+│   │   │   ├── github/          # read-only GitHub client (ADR-0004)
+│   │   │   ├── main.py          # app factory; migrations run at startup
+│   │   │   ├── openapi.py       # contract export
+│   │   │   └── settings.py      # ICHNOS_* configuration
 │   │   ├── tests/
-│   │   └── pyproject.toml
-│   └── web/                 # React + TypeScript + Vite
-│       ├── src/{app,components,features,lib,types}/
-│       ├── package.json
-│       └── vite.config.ts
+│   │   ├── alembic.ini
+│   │   ├── Dockerfile
+│   │   ├── pyproject.toml
+│   │   └── uv.lock
+│   └── web/                     # React + TypeScript + Vite; served by nginx in Docker
 ├── packages/
-│   ├── api-client/          # @ichnos/api-client
-│   ├── contracts/           # @ichnos/contracts
-│   └── ui/                  # @ichnos/ui
-├── docs/                    # OKF bundle
-├── examples/demo-repository/
-├── .github/
+│   ├── contracts/               # @ichnos/contracts: openapi.json and generated types
+│   └── api-client/              # @ichnos/api-client: typed openapi-fetch client
+├── docs/                        # OKF bundle
+├── examples/demo-repository/    # Quire demo repository (OKF bundle)
+├── scripts/                     # OKF validator, rename check, label sync, docs log
+├── .github/                     # CI, Dependabot, templates
 ├── docker-compose.yml
 ├── .env.example
-├── Makefile
+├── Makefile                     # single entry point (ADR-0007)
 ├── package.json
-├── pnpm-workspace.yaml
-└── README.md
+└── pnpm-workspace.yaml
 ```
+
+A shared `packages/ui` is added once a second app needs shared components.
 
 ## Deployment
 
@@ -186,10 +190,10 @@ ichnos/
 git clone https://github.com/MohamedAliZouariEng/ichnos.git
 cd ichnos
 cp .env.example .env
-docker compose up --build
+docker compose up --build --wait
 ```
 
-The default deployment runs the web frontend, the API, an optional worker, and a persistent local data volume. No separate database server is required.
+Compose runs `web` (nginx serving the UI and proxying `/api` and `/healthz`), published on `127.0.0.1:8765` by default, and `api` (uvicorn as a non-root user), reachable only inside the Compose network. SQLite lives in the `ichnos-data` volume, and migrations run when the API starts. An optional `ollama` service starts only with `--profile ollama` (ADR-0006). See the [self-hosting guide](/project/self-hosting.md).
 
 # API scope
 
@@ -210,7 +214,7 @@ POST  /api/query
 GET   /api/traceability/{artifact_id}
 ```
 
-Every write-capable operation first creates a pending approval. The approval endpoint executes the exact persisted payload.
+Every operation that writes to GitHub first creates a pending approval; the approval endpoint executes the exact persisted payload. Implemented in Phase 1: `GET /healthz`, `GET /api/config`, `GET`/`POST /api/workspaces`, `GET`/`PATCH /api/workspaces/{workspace_id}` and `POST /api/workspaces/{workspace_id}/github-check`. The committed contract is `packages/contracts/openapi.json`.
 
 # GitHub conventions
 

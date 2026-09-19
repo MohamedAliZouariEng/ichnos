@@ -6,7 +6,18 @@ A self-hosted, GitHub-native agentic SDLC workspace that turns requirements into
 
 ## Status
 
-Pre-alpha. Currently in **Phase 0: repository bootstrap**.
+Pre-alpha. **Phase 1 (application foundation)** is complete: a workspace can be configured in the web UI, and its GitHub access checked with a read-only token.
+
+## Quick start
+
+```bash
+git clone https://github.com/MohamedAliZouariEng/ichnos.git
+cd ichnos
+cp .env.example .env
+docker compose up --build --wait
+```
+
+Open http://localhost:8765. See the [self-hosting guide](docs/project/self-hosting.md) to connect GitHub, and the [development guide](docs/project/development.md) to contribute.
 
 ## Principles
 
