@@ -3,6 +3,7 @@
 from typing import Any
 
 from fastapi import APIRouter, FastAPI, HTTPException, Request, status
+from sqlalchemy import select
 
 from ichnos.api.config import NOT_CONFIGURED
 from ichnos.api.deps import SessionDep, SettingsDep
@@ -25,6 +26,25 @@ def _services(settings: Settings, app: FastAPI, model: str | None = None) -> dic
         "token": settings.github_token,
         "transport": app.state.github_transport,
     }
+
+
+def already_planned(session: Any, artifact: Artifact) -> str | None:
+    """Why a BRD cannot be planned again, or None: one plan per BRD unless it was rejected."""
+    runs = session.scalars(
+        select(Run).where(
+            Run.workspace_id == artifact.workspace_id,
+            Run.workflow_type == plan_flow.WORKFLOW_TYPE,
+        )
+    ).all()
+    for run in runs:
+        if (run.inputs or {}).get("artifact_id") != artifact.id:
+            continue
+        if run.status in ("queued", "running", "waiting"):
+            return "A planning run for this BRD is already in progress; decide on it in Approvals."
+        issues = ((run.outputs or {}).get("result") or {}).get("issues")
+        if issues:
+            return f"This BRD already has Issues (Epic #{issues['epic']['number']})."
+    return None
 
 
 @router.post(
@@ -55,6 +75,9 @@ def plan_artifact(
             status.HTTP_409_CONFLICT,
             "Only approved BRDs are planned; publish and approve it first.",
         )
+    reason = already_planned(session, artifact)
+    if reason:
+        raise HTTPException(status.HTTP_409_CONFLICT, reason)
     workspace = session.get(Workspace, artifact.workspace_id)
     assert workspace is not None
     services = _services(settings, request.app, workspace.llm_model)

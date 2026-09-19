@@ -201,3 +201,20 @@ def test_issues_can_be_linked_after_the_brd_is_merged(monkeypatch: pytest.Monkey
             in detail["payload"]["files"][0]["content"]
         )
         assert client.post(url).status_code == 409  # already proposed
+
+
+def test_a_brd_is_planned_once(monkeypatch: pytest.MonkeyPatch) -> None:
+    repo = FakeGitRepo(files=files(merged=True))
+    app = build(monkeypatch, repo)
+    with TestClient(app) as client:
+        artifact_id = approved_brd(app)
+        run = plan(app, client, artifact_id)
+        waiting = client.post(f"/api/artifacts/{artifact_id}/plan")
+        assert waiting.status_code == 409 and "in progress" in waiting.json()["detail"]
+
+        decide(app, client, issues_approval(app, run["id"]), "reject")
+        again = plan(app, client, artifact_id)  # a rejected plan does not block a new one
+        decide(app, client, issues_approval(app, again["id"]), "approve")
+        done = client.post(f"/api/artifacts/{artifact_id}/plan")
+    assert done.status_code == 409 and "Epic #1" in done.json()["detail"]
+    assert len(repo.issues) == 5
