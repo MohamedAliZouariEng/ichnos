@@ -35,6 +35,7 @@ class FakeGitRepo:
         self.issues: list[dict[str, Any]] = []
         self.labels: set[str] = set()
         self.writes: list[tuple[str, str]] = []
+        self.write_approvals: list[str | None] = []  # X-Ichnos-Approval per write
         tree = self._tree({path: self._blob(text) for path, text in (files or {}).items()})
         self.refs[branch] = self._commit("initial", tree, [])
 
@@ -83,6 +84,7 @@ class FakeGitRepo:
         body: dict[str, Any] = json.loads(request.content) if request.content else {}
         if method != "GET":
             self.writes.append((method, route))
+            self.write_approvals.append(request.headers.get("x-ichnos-approval"))
 
         if method == "GET" and route.startswith("/git/ref/heads/"):
             sha = self.refs.get(route.removeprefix("/git/ref/heads/"))

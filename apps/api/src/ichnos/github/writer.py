@@ -60,6 +60,8 @@ class GitHubWriter:
                 "Authorization": f"Bearer {token.get_secret_value()}",
                 "Accept": "application/vnd.github+json",
                 "X-GitHub-Api-Version": "2022-11-28",
+                # Every write names the approval that allowed it (ADR-0015).
+                "X-Ichnos-Approval": ticket.approval_id,
             },
             timeout=timeout,
             transport=transport,
