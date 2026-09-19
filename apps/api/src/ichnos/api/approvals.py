@@ -8,6 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 
 from ichnos.api.deps import SessionDep, SettingsDep
+from ichnos.api.planning import resume_if_waiting
 from ichnos.api.session import ApproverDep
 from ichnos.api.workspaces import NOT_FOUND, get_workspace_or_404
 from ichnos.approvals import verify
@@ -159,6 +160,7 @@ def approve_action(
         )
     except ApprovalError as exc:
         raise HTTPException(exc.status, exc.message) from exc
+    resume_if_waiting(request.app, settings, approval)
     return _detail(approval)
 
 
@@ -169,10 +171,16 @@ def approve_action(
     responses=DECISION_ERRORS,
 )
 def reject_action(
-    approval_id: str, body: Rejection, approver: ApproverDep, session: SessionDep
+    approval_id: str,
+    body: Rejection,
+    approver: ApproverDep,
+    session: SessionDep,
+    settings: SettingsDep,
+    request: Request,
 ) -> ApprovalDetail:
     try:
         approval = reject(session, approval_id, approver=approver.identity, note=body.note)
     except ApprovalError as exc:
         raise HTTPException(exc.status, exc.message) from exc
+    resume_if_waiting(request.app, settings, approval)
     return _detail(approval)

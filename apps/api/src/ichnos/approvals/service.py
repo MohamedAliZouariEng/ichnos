@@ -110,7 +110,7 @@ RUN_STATUS = {EXECUTED: "succeeded", REJECTED: "rejected", STALE: "failed", FAIL
 def _settle(session: Session, approval: Approval, status: str, error: str | None) -> None:
     """A waiting run and a published artifact follow the decision."""
     run = session.get(Run, approval.run_id)
-    if run is not None and run.status == "waiting":
+    if run is not None and run.status == "waiting" and run.workflow_type == "publish":
         run.status = RUN_STATUS[status]
         run.error = error
         run.finished_at = utc_now()

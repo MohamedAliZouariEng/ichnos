@@ -2632,6 +2632,77 @@
         ]
       }
     },
+    "/api/artifacts/{artifact_id}/plan": {
+      "post": {
+        "description": "Start a planning run; it waits for the decision on its Issues.",
+        "operationId": "planArtifact",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "title": "Artifact Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "ichnos_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ichnos Session"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "No model or token configured"
+          },
+          "401": {
+            "description": "Sign in to approve"
+          },
+          "404": {
+            "description": "Artifact not found"
+          },
+          "409": {
+            "description": "Only approved BRDs are planned"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Plan Artifact",
+        "tags": [
+          "runs"
+        ]
+      }
+    },
     "/api/artifacts/{artifact_id}/publish": {
       "post": {
         "description": "Build the package against the repository's current files and propose it; writes nothing.",

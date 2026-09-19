@@ -122,7 +122,7 @@ def propose_issues(app: FastAPI) -> str:
         workspace = Workspace(name="quire", repo_owner="octo", repo_name="quire")
         session.add(workspace)
         session.flush()
-        run = Run(workspace_id=workspace.id, workflow_type="planning", status="waiting")
+        run = Run(workspace_id=workspace.id, workflow_type="issues-test")
         session.add(run)
         session.flush()
         approval = propose(
@@ -159,7 +159,6 @@ def test_approval_creates_the_epic_then_linked_stories(
         approval_id = propose_issues(app)
         assert repo.writes == []
         detail = decide(client, approval_id)
-        run = client.get(f"/api/runs/{detail['run_id']}").json()
 
     assert detail["status"] == "executed", detail["error"]
     epic, *stories = repo.issues
@@ -171,7 +170,6 @@ def test_approval_creates_the_epic_then_linked_stories(
     assert {"type:epic", "type:story", "priority:must", "agent:generated"} <= repo.labels
     assert detail["result"]["epic"]["url"] == "https://github.com/octo/quire/issues/1"
     assert [s["key"] for s in detail["result"]["stories"]] == ["S-1", "S-2", "S-3"]
-    assert run["status"] == "succeeded"
 
 
 def test_a_failure_halfway_records_what_was_created(
