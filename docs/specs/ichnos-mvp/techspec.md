@@ -1,0 +1,281 @@
+---
+type: Technical Specification
+title: Ichnos MVP — Technical Specification
+description: Information model, agent workflow, architecture, API, GitHub conventions and security design for the Ichnos MVP.
+tags: [ichnos, mvp, architecture, langgraph, okf]
+status: stable
+generated: { by: claude/opus-5, at: 2026-09-19T12:46:45Z }
+verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T12:46:45Z }
+sources:
+  - id: prd
+    resource: https://docs.sylergy.net/s/documentation/p/athar-XwmmVmIjhs
+    title: Product Requirements Document v0.1 (written under the working name Athar)
+  - id: brd
+    resource: /specs/ichnos-mvp/brd.md
+    title: Ichnos MVP — Business Requirements
+  - id: okf-spec
+    resource: https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md
+    title: Open Knowledge Format specification v0.2
+ichnos:
+  artifact_id: techspec-ichnos-mvp
+  implements: [FR-1, FR-2, FR-3, FR-4, FR-5, FR-6, FR-7, FR-8, FR-9, FR-10, FR-11, FR-12, FR-13, FR-14, FR-15]
+---
+
+# Overview
+
+This specification describes how Ichnos implements the [business requirements](/specs/ichnos-mvp/brd.md).[^brd] It is derived from the original PRD.[^prd]
+
+Key decisions are recorded as ADRs:
+
+- [ADR-0001: Adopt OKF for repository documentation](/adr/0001-adopt-okf-for-documentation.md)
+- [ADR-0002: GitHub is the canonical source of truth](/adr/0002-github-is-canonical.md)
+- [ADR-0003: LangGraph for workflow orchestration](/adr/0003-langgraph-for-orchestration.md)
+
+# Information model
+
+## Canonical artifacts
+
+| Artifact | Location | OKF type |
+| --- | --- | --- |
+| Initiative | GitHub Issue, label `type:initiative` | — (GitHub) |
+| Epic | GitHub Issue, label `type:epic` | — (GitHub) |
+| Story | GitHub Issue, label `type:story` | — (GitHub) |
+| Acceptance criterion | Story body, `AC-NN` | — (GitHub) |
+| BRD | `docs/specs/<slug>/brd.md` | `BRD` |
+| Technical specification | `docs/specs/<slug>/techspec.md` | `Technical Specification` |
+| ADR | `docs/adr/<NNNN>-<slug>.md` | `Decision` |
+| Meeting note | `docs/meetings/<YYYY-MM-DD>-<slug>.md` | `Meeting Note` |
+| Project guide | `docs/project/<slug>.md` | `Reference` or `Howto` |
+| Pull request | GitHub | — (GitHub) |
+| Commit | Git | — (Git) |
+| Test | Repository and CI run | — (code) |
+
+## Relationships
+
+- Initiative contains Epic; Epic contains Story.
+- BRD defines Requirement; Story implements Requirement.
+- Story has Acceptance Criterion; Test verifies Acceptance Criterion.
+- ADR constrains Technical Specification or Story.
+- Pull Request implements Story and changes Code Module.
+- Meeting Note supports Requirement or Decision.
+- Artifact supersedes Artifact.
+
+Explicit links (OKF Markdown links, `sources`, Issue parent sections, `Closes #N`) are authoritative. Inferred links carry evidence and confidence metadata and are shown as distinct from human-confirmed links.
+
+## Artifact lifecycle
+
+```text
+draft → needs-review → approved → deprecated
+            ↘ rejected
+```
+
+Generated content starts as `draft`. Only a human action moves it to `approved`.
+
+| Ichnos state | Where it lives | OKF representation |
+| --- | --- | --- |
+| draft, needs-review | SQLite only | `status: draft`, `ichnos.review_state` |
+| approved | Repository, via an approved PR | `status: stable` + `verified: { by: human:<login> }` |
+| deprecated | Repository | `status: deprecated` + `ichnos.superseded_by` |
+| rejected | Run audit log only | Never written to the repository |
+
+# Documentation convention (OKF)
+
+Every `docs/` directory Ichnos manages is an OKF v0.2 bundle.[^okf-spec]
+
+- The root `index.md` declares `okf_version: "0.2"`; `index.md` and `log.md` are reserved at every level.
+- Conformance: every non-reserved `.md` has parseable frontmatter with a non-empty `type`; reserved files follow the spec structure.
+- `generated: { by, at }` records who wrote the content: `ichnos/<model>` for the agent, `human:<login>` for people.
+- `verified` entries record confirmation; only the approval service writes `human:` entries on behalf of the approving user.
+- `sources[]` entries have a stable `id`; claims cite them with footnotes `[^id]`.
+- Links between concepts use bundle-relative paths (`/specs/<slug>/brd.md`).
+- Ichnos-specific metadata lives under the `ichnos:` extension key; unknown keys are preserved on round-trip.
+- Every approved write adds a dated entry to `log.md`.
+- Ingestion is tolerant: unknown types, broken links and non-conformant files are warnings, never sync failures.
+
+# Agent workflow
+
+## Stages
+
+1. Intake
+2. Source indexing
+3. Context retrieval
+4. Requirements extraction
+5. BRD/spec generation
+6. Human review
+7. Human approval
+8. Epic/Story proposal
+9. GitHub write approval
+10. Context-pack assembly
+11. Implementation-plan generation
+12. Optional branch/PR action
+13. Traceability validation
+
+## Nodes
+
+| Node | Responsibility |
+| --- | --- |
+| Intake | Normalise user input into an immutable source record |
+| Retrieval | Find context: OKF `index.md` and `type` first, then vector search, then link expansion |
+| Requirements | Extract requirements, assumptions and open questions |
+| Specification | Produce a BRD/spec as an OKF concept |
+| Planning | Propose Epic and Stories with acceptance criteria |
+| Implementation | Build the context pack and implementation plan |
+| Validation | Check links, acceptance criteria and source evidence |
+| Approval | Interrupt and wait for a human decision |
+| GitHub action | Execute only the approved, persisted payload |
+
+## Run state
+
+Each run retains: input artifact IDs, repository and branch, retrieved context references, generated outputs, user edits, approval decisions, pending action payloads, tool results, errors and retries, and final external identifiers.
+
+# Architecture
+
+## Stack
+
+| Layer | Choice | Responsibility |
+| --- | --- | --- |
+| Web frontend | React + TypeScript + Vite | Workspace, review, approvals, traceability |
+| API | FastAPI | HTTP API, sessions, validation, orchestration access |
+| Orchestration | LangGraph | Stateful workflow, routing, interrupts, resumption |
+| Metadata | SQLite | Runs, approvals, sync cursors, audit events |
+| Knowledge | OKF bundle in `docs/` | Canonical documentation, typed and linked |
+| Retrieval | Local vector index + OKF link graph | Context retrieval and relationship expansion |
+| LLM | Configurable local or hosted model | Extraction, drafting, planning, validation |
+| GitHub | REST/GraphQL API | Issues, PRs, commits, comments, metadata |
+| Notifications | Optional Slack webhook | Status notifications |
+| Packaging | Docker Compose | Local and self-hosted deployment |
+
+## Monorepo layout
+
+```text
+ichnos/
+├── apps/
+│   ├── api/                 # FastAPI + LangGraph (Python package: ichnos)
+│   │   ├── app/
+│   │   │   ├── api/  artifacts/  approvals/  agents/  github/
+│   │   │   ├── okf/  retrieval/  runs/  settings/
+│   │   │   └── main.py
+│   │   ├── tests/
+│   │   └── pyproject.toml
+│   └── web/                 # React + TypeScript + Vite
+│       ├── src/{app,components,features,lib,types}/
+│       ├── package.json
+│       └── vite.config.ts
+├── packages/
+│   ├── api-client/          # @ichnos/api-client
+│   ├── contracts/           # @ichnos/contracts
+│   └── ui/                  # @ichnos/ui
+├── docs/                    # OKF bundle
+├── examples/demo-repository/
+├── .github/
+├── docker-compose.yml
+├── .env.example
+├── Makefile
+├── package.json
+├── pnpm-workspace.yaml
+└── README.md
+```
+
+## Deployment
+
+```bash
+git clone https://github.com/MohamedAliZouariEng/ichnos.git
+cd ichnos
+cp .env.example .env
+docker compose up --build
+```
+
+The default deployment runs the web frontend, the API, an optional worker, and a persistent local data volume. No separate database server is required.
+
+# API scope
+
+```text
+POST  /api/workspaces                 GET  /api/workspaces
+POST  /api/sync                       POST /api/ingest
+GET   /api/runs                       POST /api/runs
+GET   /api/runs/{run_id}              GET  /api/runs/{run_id}/events
+GET   /api/artifacts/{artifact_id}    PATCH /api/artifacts/{artifact_id}
+POST  /api/artifacts/{artifact_id}/approve
+POST  /api/artifacts/{artifact_id}/reject
+POST  /api/proposals/issues
+GET   /api/approvals                  GET  /api/approvals/{approval_id}
+POST  /api/approvals/{approval_id}/approve
+POST  /api/approvals/{approval_id}/reject
+GET   /api/context/issues/{issue_number}
+POST  /api/query
+GET   /api/traceability/{artifact_id}
+```
+
+Every write-capable operation first creates a pending approval. The approval endpoint executes the exact persisted payload.
+
+# GitHub conventions
+
+## Labels
+
+`type:initiative`, `type:epic`, `type:story`, `type:bug`, `status:draft`, `status:needs-review`, `status:approved`, `status:ready-for-implementation`, `status:in-progress`, `status:blocked`, `status:done`, `agent:generated`, `priority:p0`, `priority:p1`, `priority:p2`, `priority:p3`.
+
+## Issue body
+
+```markdown
+## Parent
+- Epic: #123
+- Initiative: #120
+
+## Source specification
+- docs/specs/workspace-onboarding/brd.md#requirements
+
+## Requirements
+- R-03: Invitation links expire after a configurable period.
+
+## Acceptance criteria
+- [ ] AC-01: Given an invitation exists, when its expiry time is reached, then it cannot be accepted.
+- [ ] AC-02: Given an expired invitation, when a user attempts to accept it, then the system displays an actionable error.
+
+## Scope exclusions
+- This Story does not include email provider configuration.
+```
+
+## Pull request body
+
+```markdown
+Closes #456
+
+## Requirement traceability
+| Acceptance criterion | Evidence |
+|---|---|
+| AC-01 | tests/test_invitation_expiry.py::test_expired_invitation |
+| AC-02 | src/invitations/errors.py and integration test |
+
+## Context used
+- docs/specs/workspace-onboarding/brd.md
+- #123
+
+## AI assistance
+- Agent/framework: Ichnos workflow
+- Generated sections: <list>
+- Human-edited sections: <list>
+```
+
+# Security and privacy
+
+- **Tokens:** GitHub and Slack tokens live in environment variables or a local secrets store, are never committed, use least privilege, and default to read-only during setup.
+- **External models:** external LLM use is explicit in configuration and shown in the UI; users are warned before repository content leaves their environment; local models are supported where practical.
+- **Approvals:** an authenticated local session is required; the exact target and payload are persisted; approvals go stale if the underlying artifact changes; every approval event is audit-logged.
+- **Repository boundaries:** the active repository, branch and target are displayed before any GitHub write.
+
+# Open decisions
+
+| Decision | Settle by | Current leaning |
+| --- | --- | --- |
+| LangGraph mandatory or behind an adapter | Phase 3 | Mandatory, thin adapter interface |
+| Default retrieval store | Phase 2 | SQLite + embeddings, OKF links as the graph |
+| Run updates: polling, SSE or WebSockets | Phase 3 | SSE |
+| GitHub OAuth, PAT or both | Phase 1 | Fine-grained PAT first |
+| Ollama in Docker Compose | Phase 1 | Optional profile |
+| Slack in first release | Phase 4 | Later adapter |
+| One or many repositories per workspace | Phase 1 | One |
+| Format of browser-edited drafts | Phase 3 | SQLite until approved, then OKF Markdown |
+
+[^brd]: Ichnos MVP — Business Requirements
+[^prd]: Product Requirements Document v0.1
+[^okf-spec]: Open Knowledge Format specification v0.2
