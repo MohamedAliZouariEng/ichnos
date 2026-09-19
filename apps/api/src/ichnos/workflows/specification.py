@@ -131,6 +131,29 @@ def render_brd(brief: Brief, refs: dict[str, Reference], *, model: str, at: str)
     return render_document(frontmatter, body), f"docs/specs/{slugify(brief.title)}/brd.md"
 
 
+def index_entries(
+    path: str, title: str, description: str, notes: list[tuple[str, str]]
+) -> list[dict[str, str]]:
+    """The index lines written together with the BRD, so the bundle stays valid OKF."""
+    slug = path.split("/")[2]
+    entries = [
+        {
+            "index": "docs/specs/index.md",
+            "entry": f"* [{_text(title)}]({slug}/brd.md) - {description}",
+        }
+    ]
+    for note_path, note_title in notes:
+        folder, name = note_path.rsplit("/", 1)
+        entries.append(
+            {
+                "index": f"{folder}/index.md",
+                "entry": f"* [{_text(note_title)}]({name}) - Meeting note this BRD was "
+                "drafted from.",
+            }
+        )
+    return entries
+
+
 def findings_of(path: str, markdown: str) -> list[dict[str, Any]]:
     """OKF findings of one document, in the shape stored on versions."""
     parsed = parse_document(path, markdown)
@@ -161,6 +184,13 @@ def specification_stage(data: Data, context: StageContext) -> Data:
         errors = sorted({f["code"] for f in findings if f["level"] == "error"})
         if errors:
             raise StageFailed("the rendered BRD is not valid OKF: " + ", ".join(errors))
+        parsed = parse_document(path, markdown)
+        notes = [
+            (note, row.title)
+            for row in rows.values()
+            if row.kind != "document" and (note := proposed_path(row))
+        ]
+        entries = index_entries(path, brief.title, parsed.description or brief.title, notes)
         artifact = Artifact(
             workspace_id=context.workspace_id,
             kind="brd",
@@ -192,6 +222,7 @@ def specification_stage(data: Data, context: StageContext) -> Data:
             "path": path,
             "findings": len(findings),
             "requirements": len(brief.requirements),
+            "index_entries": entries,
         }
     }
 

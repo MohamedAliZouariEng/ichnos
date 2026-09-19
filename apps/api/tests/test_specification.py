@@ -148,3 +148,25 @@ def test_requirements_workflow_produces_a_cited_okf_brd(factory: sessionmaker[Se
         f"[^s1]: [Workspace onboarding sync](/meetings/{today}-workspace-onboarding-sync.md)"
         in (version.content)
     )
+
+
+def test_index_entries_list_the_brd_and_its_meeting_note() -> None:
+    from ichnos.workflows.specification import index_entries
+
+    entries = index_entries(
+        "docs/specs/invitation-expiry/brd.md",
+        "Invitation [expiry]",
+        "Business requirements.",
+        [("docs/meetings/2026-09-19-onboarding-sync.md", "Onboarding sync")],
+    )
+    assert entries == [
+        {
+            "index": "docs/specs/index.md",
+            "entry": "* [Invitation (expiry)](invitation-expiry/brd.md) - Business requirements.",
+        },
+        {
+            "index": "docs/meetings/index.md",
+            "entry": "* [Onboarding sync](2026-09-19-onboarding-sync.md) - Meeting note this "
+            "BRD was drafted from.",
+        },
+    ]
