@@ -1,0 +1,9 @@
+[project]
+name = "quire"
+version = "0.1.0"
+description = "Quire: shared notebooks for small teams (demo repository for Ichnos)."
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
