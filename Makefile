@@ -114,3 +114,10 @@ logs: ## Follow the Docker Compose logs
 .PHONY: ps
 ps: ## Show the status of the Ichnos services
 > docker compose ps
+
+# ---- Demo repository ----
+.PHONY: demo-check
+demo-check: ## Validate the demo repository's docs/ as an OKF v0.2 bundle (strict)
+> uv run --no-project --with-requirements scripts/requirements-docs.txt python scripts/validate_okf.py examples/demo-repository/docs --strict
+
+check: demo-check
