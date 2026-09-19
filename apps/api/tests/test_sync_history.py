@@ -82,7 +82,9 @@ def _sync(client: TestClient, workspace_id: str) -> dict[str, int]:
     run = client.post(f"/api/workspaces/{workspace_id}/sync").json()
     assert run["status"] == "succeeded", run
     counts: dict[str, int] = run["counts"]
-    return {key: value for key, value in counts.items() if not key.startswith("documents_")}
+    return {
+        key: value for key, value in counts.items() if not key.startswith(("documents_", "links_"))
+    }
 
 
 def _workspace(client: TestClient) -> str:
@@ -160,3 +162,21 @@ def test_run_timestamps_are_utc(client: TestClient) -> None:
     run = client.post(f"/api/workspaces/{workspace_id}/sync").json()
     assert run["created_at"].endswith("Z") or run["created_at"].endswith("+00:00")
     assert run["finished_at"].endswith("Z") or run["finished_at"].endswith("+00:00")
+
+
+def test_sync_extracts_links_and_keeps_them_stable(client: TestClient) -> None:
+    workspace_id = _workspace(client)
+    _sync(client, workspace_id)
+    links = client.get(f"/api/workspaces/{workspace_id}/links").json()
+    found = {
+        (link["source_key"], link["relation"], link["target_key"], link["origin"]) for link in links
+    }
+    assert ("2", "parent", "1", "explicit") in found
+    assert ("3", "closes", "2", "explicit") in found
+    assert ("3", "changes", "docs/project/glossary.md", "explicit") in found
+
+    story = client.get(f"/api/workspaces/{workspace_id}/links?kind=issue&key=2").json()
+    assert {link["relation"] for link in story} >= {"parent", "closes"}
+
+    _sync(client, workspace_id)
+    assert len(client.get(f"/api/workspaces/{workspace_id}/links").json()) == len(links)

@@ -108,6 +108,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workspaces/{workspace_id}/links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Links
+         * @description All links of the workspace, or only those touching one node (kind and key).
+         */
+        get: operations["listLinks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/workspaces/{workspace_id}/sync": {
         parameters: {
             query?: never;
@@ -242,6 +262,27 @@ export interface components {
             status: "ok" | "degraded";
             /** Version */
             version: string;
+        };
+        /** LinkRead */
+        LinkRead: {
+            /** Confidence */
+            confidence: number;
+            /** Evidence */
+            evidence: string;
+            /** Origin */
+            origin: string;
+            /** Relation */
+            relation: string;
+            /** Resolved */
+            resolved: boolean;
+            /** Source Key */
+            source_key: string;
+            /** Source Kind */
+            source_kind: string;
+            /** Target Key */
+            target_key: string;
+            /** Target Kind */
+            target_kind: string;
         };
         /** ServerConfig */
         ServerConfig: {
@@ -644,6 +685,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GitHubItemSummary"][];
+                };
+            };
+            /** @description Workspace not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listLinks: {
+        parameters: {
+            query?: {
+                kind?: string | null;
+                key?: string | null;
+                origin?: ("explicit" | "inferred") | null;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LinkRead"][];
                 };
             };
             /** @description Workspace not found */
