@@ -3,6 +3,7 @@
 from typing import Any
 
 from fastapi import APIRouter, FastAPI, HTTPException, Request, status
+from sqlalchemy import select
 
 from ichnos.api.config import NOT_CONFIGURED
 from ichnos.api.deps import SessionDep, SettingsDep
@@ -12,7 +13,7 @@ from ichnos.db.models import Approval, Artifact, Run, Workspace
 from ichnos.llm import provider_from_settings
 from ichnos.settings import Settings
 from ichnos.workflows import plan_flow
-from ichnos.workflows.engine import resume_run, start_run
+from ichnos.workflows.engine import StageContext, resume_run, start_run
 
 router = APIRouter(tags=["runs"])
 
@@ -25,6 +26,25 @@ def _services(settings: Settings, app: FastAPI, model: str | None = None) -> dic
         "token": settings.github_token,
         "transport": app.state.github_transport,
     }
+
+
+def already_planned(session: Any, artifact: Artifact) -> str | None:
+    """Why a BRD cannot be planned again, or None: one plan per BRD unless it was rejected."""
+    runs = session.scalars(
+        select(Run).where(
+            Run.workspace_id == artifact.workspace_id,
+            Run.workflow_type == plan_flow.WORKFLOW_TYPE,
+        )
+    ).all()
+    for run in runs:
+        if (run.inputs or {}).get("artifact_id") != artifact.id:
+            continue
+        if run.status in ("queued", "running", "waiting"):
+            return "A planning run for this BRD is already in progress; decide on it in Approvals."
+        issues = ((run.outputs or {}).get("result") or {}).get("issues")
+        if issues:
+            return f"This BRD already has Issues (Epic #{issues['epic']['number']})."
+    return None
 
 
 @router.post(
@@ -55,6 +75,9 @@ def plan_artifact(
             status.HTTP_409_CONFLICT,
             "Only approved BRDs are planned; publish and approve it first.",
         )
+    reason = already_planned(session, artifact)
+    if reason:
+        raise HTTPException(status.HTTP_409_CONFLICT, reason)
     workspace = session.get(Workspace, artifact.workspace_id)
     assert workspace is not None
     services = _services(settings, request.app, workspace.llm_model)
@@ -99,3 +122,62 @@ def resume_if_waiting(app: FastAPI, settings: Settings, approval: Approval) -> N
         checkpoint_path=settings.checkpoint_path(),
         services=_services(settings, app, model),
     )
+
+
+@router.post(
+    "/api/runs/{run_id}/link-issues",
+    response_model=RunDetail,
+    operation_id="linkIssues",
+    responses={
+        401: {"description": "Sign in to approve"},
+        404: {"description": "Planning run not found"},
+        409: {"description": "No Issues, already proposed, or the BRD is not merged yet"},
+    },
+)
+def link_issues(
+    run_id: str,
+    approver: ApproverDep,
+    session: SessionDep,
+    settings: SettingsDep,
+    request: Request,
+) -> RunDetail:
+    """Propose writing a finished plan's Issue numbers into its merged BRD."""
+    run = session.get(Run, run_id)
+    if run is None or run.workflow_type != plan_flow.WORKFLOW_TYPE:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Planning run not found.")
+    result = dict((run.outputs or {}).get("result") or {})
+    if not result.get("issues"):
+        raise HTTPException(status.HTTP_409_CONFLICT, "This planning run created no Issues.")
+    earlier = result.get("follow_up_approval_id")
+    if earlier:
+        previous = session.get(Approval, earlier)
+        if previous is not None and previous.status in ("pending", "approved", "executed"):
+            raise HTTPException(status.HTTP_409_CONFLICT, "Linking is already proposed.")
+    inputs = dict(run.inputs or {})
+    artifact = session.get(Artifact, str(inputs.get("artifact_id")))
+    if artifact is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "The planned BRD no longer exists.")
+    data = {
+        **inputs,
+        "approver": approver.identity,
+        "brd_path": f"docs/specs/{artifact.slug}/{artifact.kind}.md",
+    }
+    context = StageContext(
+        run.id,
+        run.workspace_id,
+        request.app.state.session_factory,
+        _services(settings, request.app),
+    )
+    approval_id = plan_flow.link_issues_into_brd(data, context, result["issues"])
+    if approval_id is None:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            f"{data['brd_path']} is not on {data['base_branch']} yet; "
+            "merge its pull request first.",
+        )
+    run.outputs = {
+        **(run.outputs or {}),
+        "result": {**result, "follow_up_approval_id": approval_id},
+    }
+    session.commit()
+    return _detail(session, run)

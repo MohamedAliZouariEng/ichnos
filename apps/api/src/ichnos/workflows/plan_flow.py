@@ -64,7 +64,7 @@ def decision_stage(data: Data, context: StageContext) -> Data:
     return {"issues": decision.get("result"), "decision_status": status}
 
 
-def _link_issues(data: Data, context: StageContext, issues: dict[str, Any]) -> str | None:
+def link_issues_into_brd(data: Data, context: StageContext, issues: dict[str, Any]) -> str | None:
     """Propose writing the Issue numbers into the BRD's ichnos extension; returns the approval."""
     token = context.services.get("token")
     if token is None:
@@ -136,7 +136,7 @@ def record_stage(data: Data, context: StageContext) -> Data:
     issues = data.get("issues")
     result: dict[str, Any] = {"decision": data.get("decision_status"), "issues": issues}
     if issues:
-        result["follow_up_approval_id"] = _link_issues(data, context, issues)
+        result["follow_up_approval_id"] = link_issues_into_brd(data, context, issues)
     return {"result": result}
 
 

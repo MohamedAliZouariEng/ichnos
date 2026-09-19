@@ -179,3 +179,42 @@ def test_only_approved_brds_are_planned(monkeypatch: pytest.MonkeyPatch) -> None
         sign_in(client)
         response = client.post(f"/api/artifacts/{approved_brd(app, status='draft')}/plan")
     assert response.status_code == 409
+
+
+def test_issues_can_be_linked_after_the_brd_is_merged(monkeypatch: pytest.MonkeyPatch) -> None:
+    repo = FakeGitRepo(files=files(merged=False))
+    app = build(monkeypatch, repo)
+    with TestClient(app) as client:
+        run = plan(app, client, approved_brd(app))
+        decide(app, client, issues_approval(app, run["id"]), "approve")
+        url = f"/api/runs/{run['id']}/link-issues"
+        assert client.post(url).status_code == 409  # the BRD is not merged yet
+
+        repo.push("main", {BRD_PATH: BRD}, "Merge the BRD pull request")
+        linked = client.post(url)
+        assert linked.status_code == 200, linked.text
+        follow_up = linked.json()["outputs"]["result"]["follow_up_approval_id"]
+        detail = client.get(f"/api/approvals/{follow_up}").json()
+        assert detail["status"] == "pending"
+        assert (
+            "resource: https://github.com/octo/quire/issues/1"
+            in detail["payload"]["files"][0]["content"]
+        )
+        assert client.post(url).status_code == 409  # already proposed
+
+
+def test_a_brd_is_planned_once(monkeypatch: pytest.MonkeyPatch) -> None:
+    repo = FakeGitRepo(files=files(merged=True))
+    app = build(monkeypatch, repo)
+    with TestClient(app) as client:
+        artifact_id = approved_brd(app)
+        run = plan(app, client, artifact_id)
+        waiting = client.post(f"/api/artifacts/{artifact_id}/plan")
+        assert waiting.status_code == 409 and "in progress" in waiting.json()["detail"]
+
+        decide(app, client, issues_approval(app, run["id"]), "reject")
+        again = plan(app, client, artifact_id)  # a rejected plan does not block a new one
+        decide(app, client, issues_approval(app, again["id"]), "approve")
+        done = client.post(f"/api/artifacts/{artifact_id}/plan")
+    assert done.status_code == 409 and "Epic #1" in done.json()["detail"]
+    assert len(repo.issues) == 5

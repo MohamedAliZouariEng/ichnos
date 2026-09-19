@@ -1,5 +1,9 @@
 # Documentation Update Log
 
+## 2026-09-20
+* **Update**: Added approvals, publishing and planning to the [self-hosting guide](/project/self-hosting.md), and approval tests to the [development guide](/project/development.md).
+* **Update**: Aligned the [technical specification](/specs/ichnos-mvp/techspec.md) with Phase 4: API scope.
+
 ## 2026-09-19
 * **Creation**: Added [ADR-0015](/adr/0015-pending-actions-and-one-write-client.md), [ADR-0016](/adr/0016-approver-session-and-identity.md), [ADR-0017](/adr/0017-how-ichnos-writes-to-github.md) and [ADR-0018](/adr/0018-slack-deferred.md).
 * **Update**: Settled the last open decision in the [technical specification](/specs/ichnos-mvp/techspec.md).

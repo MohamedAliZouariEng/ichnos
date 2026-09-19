@@ -96,3 +96,11 @@ See the [technical specification](/specs/ichnos-mvp/techspec.md) for the archite
 
 [^adr-0007]: ADR-0007: Monorepo tooling with pnpm workspaces and uv
 [^techspec]: Ichnos MVP — Technical Specification
+
+## Approvals in development and tests
+
+Every GitHub write goes through `ichnos.approvals`. The write client (`ichnos/github/writer.py`) can only be built from an execution ticket, and only the approval service issues tickets. `tests/test_github_writer.py` fails the build if any module outside `ichnos/approvals/` imports the writer or issues a ticket.
+
+Tests write to `tests/fake_github_writes.py`, an in-memory repository with content-addressed blobs, trees, commits, refs, pull requests, Issues and labels. It records every write together with its `X-Ichnos-Approval` header. `tests/test_zero_unapproved_writes.py` runs the whole Phase 4 flow through the API and proves that every write belongs to an executed, human-approved action.
+
+To sign in while developing, put `ICHNOS_APPROVER_PASSWORD` in `.env`; `make dev` and `make up` read the same file but keep separate databases. Planning runs pause at a LangGraph interrupt and continue from their SQLite checkpoint when their Issues are approved or rejected, also after a restart.

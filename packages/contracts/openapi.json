@@ -3265,6 +3265,74 @@
         ]
       }
     },
+    "/api/runs/{run_id}/link-issues": {
+      "post": {
+        "description": "Propose writing a finished plan's Issue numbers into its merged BRD.",
+        "operationId": "linkIssues",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "ichnos_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ichnos Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "description": "Sign in to approve"
+          },
+          "404": {
+            "description": "Planning run not found"
+          },
+          "409": {
+            "description": "No Issues, already proposed, or the BRD is not merged yet"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Link Issues",
+        "tags": [
+          "runs"
+        ]
+      }
+    },
     "/api/session": {
       "delete": {
         "operationId": "signOut",
