@@ -16,6 +16,7 @@ from ichnos.api.workspaces import router as workspaces_router
 from ichnos.db.engine import make_engine, make_session_factory
 from ichnos.db.migrate import upgrade_to_head
 from ichnos.settings import Settings, get_settings
+from ichnos.workflows.engine import WorkflowRunner, mark_interrupted
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -26,7 +27,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
         config.data_dir.mkdir(parents=True, exist_ok=True)
         upgrade_to_head(config.sqlalchemy_url())
+        mark_interrupted(app.state.session_factory)
         yield
+        app.state.runner.shutdown()
         engine.dispose()
 
     app = FastAPI(
@@ -42,6 +45,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.session_factory = make_session_factory(engine)
     app.state.github_transport = None  # tests inject httpx.MockTransport here
     app.state.llm_transport = None  # tests inject httpx.MockTransport here
+    app.state.runner = WorkflowRunner(config.workflow_workers)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=config.cors_origins,
