@@ -1,36 +1,98 @@
-import { HealthBadge } from "./components/HealthBadge";
-import { WorkspacePanel } from "./features/workspace/WorkspacePanel";
+import { useState } from "react";
 
-const CURRENT_PHASE = 1;
+import { HealthBadge } from "./components/HealthBadge";
+import { WorkspaceSwitcher } from "./components/WorkspaceSwitcher";
+import { GitHubPanel } from "./features/github/GitHubPanel";
+import { InboxPanel } from "./features/inbox/InboxPanel";
+import { WorkspacePanel } from "./features/workspace/WorkspacePanel";
+import { type Section, useRoute } from "./route";
+import { useWorkspaces } from "./workspaces";
+
+const CURRENT_PHASE = 2;
 
 // Ordered the way work flows through Ichnos; each section names the phase that delivers it.
-const SECTIONS = [
-  { id: "workspace", label: "Workspace", phase: 1 },
-  { id: "inbox", label: "Inbox", phase: 2 },
+const SECTIONS: { id: string; section?: Section; label: string; phase: number }[] = [
+  { id: "workspace", section: "workspace", label: "Workspace", phase: 1 },
+  { id: "inbox", section: "inbox", label: "Inbox", phase: 2 },
+  { id: "github", section: "github", label: "GitHub context", phase: 2 },
   { id: "runs", label: "Workflow runs", phase: 3 },
   { id: "artifacts", label: "Artifacts", phase: 3 },
   { id: "approvals", label: "Approvals", phase: 4 },
   { id: "traceability", label: "Traceability", phase: 6 },
-] as const;
+];
 
 export function App() {
+  const [route, navigate] = useRoute();
+  const { workspaces, selected, select, refresh } = useWorkspaces();
+  const [creating, setCreating] = useState(false);
+  const section: Section = creating || !selected ? "workspace" : route.section;
+
+  function open(next: Section) {
+    setCreating(false);
+    navigate({ section: next });
+  }
+
+  function content() {
+    if (section === "inbox" && selected) {
+      return (
+        <InboxPanel
+          key={selected.id}
+          workspace={selected}
+          documentPath={route.doc}
+          onOpenDocument={(path) => navigate({ section: "inbox", doc: path })}
+          onCloseDocument={() => navigate({ section: "inbox" })}
+        />
+      );
+    }
+    if (section === "github" && selected) {
+      return (
+        <GitHubPanel
+          key={selected.id}
+          workspace={selected}
+          onOpenDocument={(path) => navigate({ section: "inbox", doc: path })}
+        />
+      );
+    }
+    return (
+      <WorkspacePanel
+        key={creating ? "new" : (selected?.id ?? "first")}
+        workspaceId={creating ? null : selected?.id}
+        onSaved={(workspace) => {
+          setCreating(false);
+          void refresh().then(() => select(workspace.id));
+        }}
+      />
+    );
+  }
+
   return (
     <div className="shell">
       <aside className="sidebar">
         <p className="wordmark">ichnos</p>
         <nav aria-label="Main">
           <ol className="trace">
-            {SECTIONS.map((section) => {
-              const available = section.phase <= CURRENT_PHASE;
+            {SECTIONS.map((item) => {
+              const available = item.phase <= CURRENT_PHASE && item.section !== undefined;
+              const current = item.section === section;
+              const classes = ["trace__step"];
+              if (available) classes.push("trace__step--available");
+              if (current) classes.push("trace__step--current");
               return (
-                <li
-                  key={section.id}
-                  className={available ? "trace__step trace__step--current" : "trace__step"}
-                  aria-current={section.id === "workspace" ? "page" : undefined}
-                >
+                <li key={item.id} className={classes.join(" ")}>
                   <span className="trace__node" aria-hidden="true" />
-                  <span className="trace__label">{section.label}</span>
-                  {!available && <span className="trace__phase">Phase {section.phase}</span>}
+                  {available && item.section ? (
+                    <button
+                      type="button"
+                      className="trace__link"
+                      aria-current={current ? "page" : undefined}
+                      onClick={() => open(item.section as Section)}
+                    >
+                      {item.label}
+                    </button>
+                  ) : (
+                    <span className="trace__label">{item.label}</span>
+                  )}
+                  {!available && <span className="trace__phase">Phase {item.phase}</span>}
                 </li>
               );
             })}
@@ -39,11 +101,19 @@ export function App() {
       </aside>
       <div className="main">
         <header className="topbar">
+          <WorkspaceSwitcher
+            workspaces={workspaces}
+            selectedId={selected?.id ?? null}
+            creating={creating}
+            onSelect={(id) => {
+              setCreating(false);
+              select(id);
+            }}
+            onCreate={() => setCreating(true)}
+          />
           <HealthBadge />
         </header>
-        <main className="content">
-          <WorkspacePanel />
-        </main>
+        <main className="content">{content()}</main>
       </div>
     </div>
   );

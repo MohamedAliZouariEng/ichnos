@@ -75,8 +75,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Start the stack exactly as a new user would
+        env:
+          # The workflow's own short-lived token: enough to read public repositories.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cp .env.example .env
+          sed -i "s|^ICHNOS_GITHUB_TOKEN=.*|ICHNOS_GITHUB_TOKEN=${GH_TOKEN}|" .env
           docker compose up --build --detach --wait
       - name: Health check through nginx
         run: curl --fail --silent --show-error http://127.0.0.1:8765/healthz
@@ -90,6 +94,8 @@ jobs:
           docker compose down
           docker compose up --detach --wait
           curl --fail --silent --show-error http://127.0.0.1:8765/api/workspaces | grep -q '"name":"ci"'
+      - name: Sync a real repository end to end (Phase 2 exit criteria)
+        run: python3 scripts/e2e_sync.py --base http://127.0.0.1:8765
       - name: Show logs on failure
         if: failure()
         run: docker compose logs

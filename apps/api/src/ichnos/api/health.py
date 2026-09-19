@@ -19,6 +19,7 @@ class Health(BaseModel):
     status: HealthState
     version: str
     database: DatabaseState
+    search: DatabaseState
 
 
 @router.get(
@@ -30,12 +31,19 @@ class Health(BaseModel):
 def get_health(request: Request, response: Response) -> Health:
     engine: Engine = request.app.state.engine
     database: DatabaseState = "ok"
+    search: DatabaseState = "ok"
     try:
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
+            try:  # the FTS5 index exists and is readable (ADR-0008)
+                connection.execute(text("SELECT 1 FROM chunks_fts LIMIT 1"))
+            except SQLAlchemyError:
+                search = "unavailable"
     except SQLAlchemyError:
         database = "unavailable"
-    status: HealthState = "ok" if database == "ok" else "degraded"
+        search = "unavailable"
+    healthy = database == "ok" and search == "ok"
+    status: HealthState = "ok" if healthy else "degraded"
     if status != "ok":
         response.status_code = 503
-    return Health(status=status, version=__version__, database=database)
+    return Health(status=status, version=__version__, database=database, search=search)

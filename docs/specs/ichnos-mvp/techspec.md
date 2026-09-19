@@ -4,8 +4,8 @@ title: Ichnos MVP — Technical Specification
 description: Information model, agent workflow, architecture, API, GitHub conventions and security design for the Ichnos MVP.
 tags: [ichnos, mvp, architecture, langgraph, okf]
 status: stable
-generated: { by: claude/opus-5, at: 2026-09-19T15:34:39Z }
-verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T15:34:39Z }
+generated: { by: claude/opus-5, at: 2026-09-19T17:09:14Z }
+verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T17:09:14Z }
 sources:
   - id: prd
     resource: https://docs.sylergy.net/s/documentation/p/athar-XwmmVmIjhs
@@ -34,6 +34,9 @@ Key decisions are recorded as ADRs:
 - [ADR-0005: One repository per workspace](/adr/0005-one-repository-per-workspace.md)
 - [ADR-0006: Ollama as an optional Compose profile](/adr/0006-ollama-optional-compose-profile.md)
 - [ADR-0007: Monorepo tooling with pnpm and uv](/adr/0007-monorepo-tooling-pnpm-uv.md)
+- [ADR-0008: Retrieval store: SQLite full-text search now](/adr/0008-retrieval-store-sqlite-fts.md)
+- [ADR-0009: GitHub sync strategy](/adr/0009-github-sync-strategy.md)
+- [ADR-0010: Knowledge links record origin, evidence and confidence](/adr/0010-knowledge-links-provenance.md)
 
 # Information model
 
@@ -143,7 +146,7 @@ Each run retains: input artifact IDs, repository and branch, retrieved context r
 | Orchestration | LangGraph | Stateful workflow, routing, interrupts, resumption |
 | Metadata | SQLite | Runs, approvals, sync cursors, audit events |
 | Knowledge | OKF bundle in `docs/` | Canonical documentation, typed and linked |
-| Retrieval | Local vector index + OKF link graph | Context retrieval and relationship expansion |
+| Retrieval | SQLite FTS5 index + links table (ADR-0008, ADR-0010) | Context retrieval and relationship expansion |
 | LLM | Configurable local or hosted model | Extraction, drafting, planning, validation |
 | GitHub | REST/GraphQL API | Issues, PRs, commits, comments, metadata |
 | Notifications | Optional Slack webhook | Status notifications |
@@ -156,9 +159,12 @@ ichnos/
 ├── apps/
 │   ├── api/                     # FastAPI service; Python package `ichnos` (uv)
 │   │   ├── src/ichnos/
-│   │   │   ├── api/             # routers: health, config, workspaces
+│   │   │   ├── api/             # routers: health, config, workspaces, sync, knowledge
 │   │   │   ├── db/              # SQLAlchemy models, engine, Alembic migrations
-│   │   │   ├── github/          # read-only GitHub client (ADR-0004)
+│   │   │   ├── github/          # read-only GitHub client and reader (ADR-0004, ADR-0009)
+│   │   │   ├── knowledge/       # link extraction and chunking (ADR-0008, ADR-0010)
+│   │   │   ├── okf/             # tolerant OKF v0.2 parser (ADR-0001)
+│   │   │   ├── sync/            # sync stages, cursors and reset (ADR-0009)
 │   │   │   ├── main.py          # app factory; migrations run at startup
 │   │   │   ├── openapi.py       # contract export
 │   │   │   └── settings.py      # ICHNOS_* configuration
@@ -172,8 +178,8 @@ ichnos/
 │   ├── contracts/               # @ichnos/contracts: openapi.json and generated types
 │   └── api-client/              # @ichnos/api-client: typed openapi-fetch client
 ├── docs/                        # OKF bundle
-├── examples/demo-repository/    # Quire demo repository (OKF bundle)
-├── scripts/                     # OKF validator, rename check, label sync, docs log
+├── examples/demo-repository/    # Quire demo repository; published by scripts/publish_demo.sh
+├── scripts/                     # OKF validator, rename check, labels, docs log, demo, e2e
 ├── .github/                     # CI, Dependabot, templates
 ├── docker-compose.yml
 ├── .env.example
@@ -214,7 +220,7 @@ POST  /api/query
 GET   /api/traceability/{artifact_id}
 ```
 
-Every operation that writes to GitHub first creates a pending approval; the approval endpoint executes the exact persisted payload. Implemented in Phase 1: `GET /healthz`, `GET /api/config`, `GET`/`POST /api/workspaces`, `GET`/`PATCH /api/workspaces/{workspace_id}` and `POST /api/workspaces/{workspace_id}/github-check`. The committed contract is `packages/contracts/openapi.json`.
+Every operation that writes to GitHub first creates a pending approval; the approval endpoint executes the exact persisted payload. Implemented so far: health and configuration (`GET /healthz`, `GET /api/config`); workspaces (`GET`/`POST /api/workspaces`, `GET`/`PATCH /api/workspaces/{workspace_id}`, `POST …/github-check`); sync (`POST …/sync`, `GET …/sync-runs`, `DELETE …/knowledge`); knowledge (`GET …/documents`, `GET …/documents/detail`, `GET …/github/items`, `GET …/links`, `GET …/search`). The committed contract is `packages/contracts/openapi.json`.
 
 # GitHub conventions
 
@@ -276,7 +282,7 @@ Closes #456
 | Decision | Settle by | Current leaning |
 | --- | --- | --- |
 | LangGraph mandatory or behind an adapter | Phase 3 | Mandatory, thin adapter interface |
-| Default retrieval store | Phase 2 | SQLite + embeddings, OKF links as the graph |
+| Default retrieval store | Phase 2 | Decided: SQLite FTS5 now, embeddings in Phase 3 ([ADR-0008](/adr/0008-retrieval-store-sqlite-fts.md)) |
 | Run updates: polling, SSE or WebSockets | Phase 3 | SSE |
 | GitHub OAuth, PAT or both | Phase 1 | Decided: fine-grained PAT ([ADR-0004](/adr/0004-github-access-fine-grained-pat.md)) |
 | Ollama in Docker Compose | Phase 1 | Decided: optional profile ([ADR-0006](/adr/0006-ollama-optional-compose-profile.md)) |

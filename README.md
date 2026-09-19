@@ -6,7 +6,7 @@ A self-hosted, GitHub-native agentic SDLC workspace that turns requirements into
 
 ## Status
 
-Pre-alpha. **Phase 1 (application foundation)** is complete: a workspace can be configured in the web UI, and its GitHub access checked with a read-only token.
+Pre-alpha. **Phase 2 (knowledge layer and GitHub sync)** is complete: Ichnos syncs a repository's OKF documentation and GitHub history, links them with evidence, and makes them searchable in the web UI.
 
 ## Quick start
 

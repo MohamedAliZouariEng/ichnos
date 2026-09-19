@@ -93,7 +93,7 @@ def _to_read(workspace: Workspace) -> WorkspaceRead:
     )
 
 
-def _get_or_404(session: Session, workspace_id: str) -> Workspace:
+def get_workspace_or_404(session: Session, workspace_id: str) -> Workspace:
     workspace = session.get(Workspace, workspace_id)
     if workspace is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Workspace not found")
@@ -158,7 +158,7 @@ def create_workspace(body: WorkspaceCreate, session: SessionDep) -> WorkspaceRea
     responses=NOT_FOUND,
 )
 def get_workspace(workspace_id: str, session: SessionDep) -> WorkspaceRead:
-    return _to_read(_get_or_404(session, workspace_id))
+    return _to_read(get_workspace_or_404(session, workspace_id))
 
 
 @router.patch(
@@ -170,7 +170,7 @@ def get_workspace(workspace_id: str, session: SessionDep) -> WorkspaceRead:
 def update_workspace(
     workspace_id: str, body: WorkspaceUpdate, session: SessionDep
 ) -> WorkspaceRead:
-    workspace = _get_or_404(session, workspace_id)
+    workspace = get_workspace_or_404(session, workspace_id)
     changes = {
         field: value
         for field, value in body.model_dump(exclude_unset=True).items()
@@ -200,5 +200,5 @@ def update_workspace(
     responses=NOT_FOUND,
 )
 def check_github_access(workspace_id: str, session: SessionDep, github: GitHubDep) -> GitHubAccess:
-    workspace = _get_or_404(session, workspace_id)
+    workspace = get_workspace_or_404(session, workspace_id)
     return github.check_access(workspace.repo_owner, workspace.repo_name, workspace.branch)
