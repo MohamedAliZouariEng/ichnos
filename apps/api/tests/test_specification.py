@@ -162,7 +162,7 @@ def test_index_entries_list_the_brd_and_its_meeting_note() -> None:
     assert entries == [
         {
             "index": "docs/specs/index.md",
-            "entry": "* [Invitation (expiry)](invitation-expiry/index.md) - Business requirements.",
+            "entry": "* [Invitation (expiry)](invitation-expiry/) - Business requirements.",
         },
         {
             "index": "docs/specs/invitation-expiry/index.md",

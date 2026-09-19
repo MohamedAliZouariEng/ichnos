@@ -140,7 +140,7 @@ def index_entries(
     entries = [
         {
             "index": "docs/specs/index.md",
-            "entry": f"* [{_text(title)}]({slug}/index.md) - {description}",
+            "entry": f"* [{_text(title)}]({slug}/) - {description}",
         },
         {
             "index": f"docs/specs/{slug}/index.md",
