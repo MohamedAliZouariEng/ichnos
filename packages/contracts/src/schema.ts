@@ -74,6 +74,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workspaces/{workspace_id}/documents/detail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Document
+         * @description One synced document with its frontmatter, body and conformance findings.
+         */
+        get: operations["getDocument"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/workspaces/{workspace_id}/github-check": {
         parameters: {
             query?: never;
@@ -223,6 +243,42 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** DocumentDetail */
+        DocumentDetail: {
+            /** Body */
+            body: string;
+            /** Commit Sha */
+            commit_sha: string;
+            /** Concept Id */
+            concept_id: string | null;
+            /** Description */
+            description: string | null;
+            /** Finding Details */
+            finding_details: components["schemas"]["FindingRead"][];
+            /** Findings */
+            findings: number;
+            /** Frontmatter */
+            frontmatter: {
+                [key: string]: unknown;
+            };
+            /** Kind */
+            kind: string;
+            /** Path */
+            path: string;
+            /** Status */
+            status: string | null;
+            /**
+             * Synced At
+             * Format: date-time
+             */
+            synced_at: string;
+            /** Title */
+            title: string | null;
+            /** Trust Tier */
+            trust_tier: string;
+            /** Type */
+            type: string | null;
+        };
         /** DocumentSummary */
         DocumentSummary: {
             /** Commit Sha */
@@ -243,6 +299,17 @@ export interface components {
             trust_tier: string;
             /** Type */
             type: string | null;
+        };
+        /** FindingRead */
+        FindingRead: {
+            /** Code */
+            code: string;
+            /** Level */
+            level: string;
+            /** Line */
+            line: number | null;
+            /** Message */
+            message: string;
         };
         /** GitHubAccess */
         GitHubAccess: {
@@ -681,6 +748,46 @@ export interface operations {
                 };
             };
             /** @description Workspace not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    getDocument: {
+        parameters: {
+            query: {
+                path: string;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentDetail"];
+                };
+            };
+            /** @description Workspace or document not found */
             404: {
                 headers: {
                     [name: string]: unknown;

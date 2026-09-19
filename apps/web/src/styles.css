@@ -337,3 +337,410 @@ button:disabled {
 .notice--bad {
   border-left-color: var(--bad);
 }
+
+/* ---- Navigation and workspace switcher (Phase 2) ---- */
+.trace__step--available .trace__node {
+  border-color: var(--trace);
+}
+
+.trace__link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.trace__link:hover {
+  color: var(--trace);
+}
+
+.topbar {
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.switcher__label {
+  color: var(--graphite);
+}
+
+.switcher select {
+  max-width: 22rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--sheet);
+  color: var(--ink);
+  font: inherit;
+}
+
+/* ---- Inbox, search and concept detail (Phase 2) ---- */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.path {
+  color: var(--graphite);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+.text-bad {
+  color: var(--bad);
+}
+
+.text-warn {
+  color: var(--warn);
+}
+
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--trace);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge--ok {
+  color: var(--ok);
+}
+
+.badge--info {
+  color: var(--trace);
+}
+
+.badge--warn {
+  color: var(--warn);
+}
+
+.badge--muted {
+  color: var(--graphite);
+}
+
+.syncbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.syncbar__status {
+  margin: 0;
+  color: var(--graphite);
+  font-size: 0.9rem;
+}
+
+.syncbar__status.text-bad {
+  color: var(--bad);
+}
+
+.search {
+  margin-bottom: 1.5rem;
+}
+
+.search__form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.search__form input {
+  flex: 1;
+}
+
+.hits {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hits__item {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.hits__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.hits__title {
+  font-weight: 600;
+}
+
+.hits__heading {
+  color: var(--graphite);
+  font-size: 0.8rem;
+}
+
+.hits__snippet {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+}
+
+mark {
+  padding: 0 0.1em;
+  border-radius: 2px;
+  background: #cdeae6;
+  color: var(--ink);
+}
+
+.documents__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--graphite);
+  font-size: 0.85rem;
+}
+
+.toggle input {
+  width: auto;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--sheet);
+  font-size: 0.9rem;
+}
+
+.table th,
+.table td {
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+  vertical-align: top;
+}
+
+.table th {
+  color: var(--graphite);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.empty {
+  padding: 1.5rem;
+  border: 1px dashed var(--rule);
+  border-radius: 6px;
+  color: var(--graphite);
+}
+
+.back {
+  margin-bottom: 1rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--trace);
+  font: inherit;
+  cursor: pointer;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 1rem;
+  margin: 0 0 1.5rem;
+}
+
+.facts dt {
+  color: var(--graphite);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.facts dd {
+  margin: 0.25rem 0 0;
+}
+
+.facts__help {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--graphite);
+  font-size: 0.8rem;
+}
+
+.findings,
+.links {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.findings li {
+  padding: 0.3rem 0;
+}
+
+.links__item {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.links__item:last-child {
+  border-bottom: 0;
+}
+
+.links__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.links__relation {
+  color: var(--graphite);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.links__node {
+  font-weight: 600;
+}
+
+.links__evidence,
+.panel .links__evidence {
+  margin: 0.25rem 0 0;
+  color: var(--graphite);
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+.body {
+  max-height: 28rem;
+  margin: 0;
+  overflow: auto;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+}
+
+/* ---- GitHub context (Phase 2) ---- */
+.filters {
+  display: inline-flex;
+  margin-bottom: 1rem;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.filters__button {
+  padding: 0.35rem 0.8rem;
+  border: 0;
+  border-radius: 0;
+  background: var(--sheet);
+  color: var(--graphite);
+  font-weight: 500;
+}
+
+.filters__button[aria-pressed="true"] {
+  background: var(--trace);
+  color: #ffffff;
+}
+
+.items {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  margin-bottom: 0.75rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--sheet);
+}
+
+.item__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.item__number {
+  color: var(--graphite);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.item__title {
+  font-weight: 600;
+}
+
+.item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.4rem;
+  color: var(--graphite);
+  font-size: 0.8rem;
+}
+
+.item__meta a {
+  color: var(--trace);
+}
+
+.chip {
+  padding: 0.05rem 0.4rem;
+  border-radius: 3px;
+  background: var(--vellum);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+.item__links {
+  margin-top: 0.75rem;
+}
+
+.item__links .panel {
+  margin-bottom: 0.75rem;
+  padding: 1rem;
+}

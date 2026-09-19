@@ -157,3 +157,20 @@ def test_sync_without_token_is_rejected() -> None:
         response = client.post(f"/api/workspaces/{workspace_id}/sync")
     assert response.status_code == 400
     assert "ICHNOS_GITHUB_TOKEN" in response.json()["detail"]
+
+
+def test_document_detail_shows_frontmatter_and_findings(client: TestClient) -> None:
+    workspace_id = _workspace(client)
+    _sync(client, workspace_id)
+    url = f"/api/workspaces/{workspace_id}/documents/detail"
+
+    note = client.get(url, params={"path": "docs/note.md"}).json()
+    assert note["trust_tier"] == "human_verified"
+    assert note["frontmatter"]["meeting_date"] == "2026-09-15"
+    assert note["finding_details"] == []
+    assert "Text." in note["body"]
+
+    broken = client.get(url, params={"path": "docs/broken.md"}).json()
+    assert [f["code"] for f in broken["finding_details"]] == ["frontmatter-missing"]
+
+    assert client.get(url, params={"path": "docs/missing.md"}).status_code == 404

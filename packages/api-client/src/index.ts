@@ -22,3 +22,10 @@ export function createIchnosClient(baseUrl: string) {
 }
 
 export type IchnosClient = ReturnType<typeof createIchnosClient>;
+
+export type DocumentSummary = Schemas["DocumentSummary"];
+export type DocumentDetail = Schemas["DocumentDetail"];
+export type SyncRun = Schemas["SyncRunRead"];
+export type GitHubItem = Schemas["GitHubItemSummary"];
+export type KnowledgeLink = Schemas["LinkRead"];
+export type SearchHit = Schemas["SearchHit"];

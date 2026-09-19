@@ -47,6 +47,21 @@ class DocumentSummary(BaseModel):
     commit_sha: str
 
 
+class FindingRead(BaseModel):
+    level: str
+    code: str
+    message: str
+    line: int | None
+
+
+class DocumentDetail(DocumentSummary):
+    description: str | None
+    frontmatter: dict[str, Any]
+    body: str
+    finding_details: list[FindingRead]
+    synced_at: dt.datetime
+
+
 def _run_read(run: Run) -> SyncRunRead:
     outputs = run.outputs or {}
     return SyncRunRead(
@@ -209,3 +224,40 @@ def reset_workspace_knowledge(workspace_id: str, session: SessionDep) -> Knowled
     )
     session.commit()
     return KnowledgeReset(deleted=deleted)
+
+
+@router.get(
+    "/documents/detail",
+    response_model=DocumentDetail,
+    operation_id="getDocument",
+    responses={404: {"description": "Workspace or document not found"}},
+)
+def get_document(
+    workspace_id: str,
+    session: SessionDep,
+    path: Annotated[str, Query(min_length=1, max_length=500)],
+) -> DocumentDetail:
+    """One synced document with its frontmatter, body and conformance findings."""
+    get_workspace_or_404(session, workspace_id)
+    doc = session.scalar(
+        select(Document).where(Document.workspace_id == workspace_id, Document.path == path)
+    )
+    if doc is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Document not found")
+    findings = doc.findings or []
+    return DocumentDetail(
+        path=doc.path,
+        kind=doc.kind,
+        concept_id=doc.concept_id,
+        type=doc.doc_type,
+        title=doc.title,
+        status=doc.status,
+        trust_tier=doc.trust_tier,
+        findings=len(findings),
+        commit_sha=doc.commit_sha,
+        description=doc.description,
+        frontmatter=doc.frontmatter or {},
+        body=doc.body,
+        finding_details=[FindingRead(**finding) for finding in findings],
+        synced_at=as_utc(doc.synced_at),
+    )

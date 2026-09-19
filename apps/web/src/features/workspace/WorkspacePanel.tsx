@@ -146,7 +146,13 @@ function Field({ id, label, value, onChange, error, hint, placeholder, multiline
   );
 }
 
-export function WorkspacePanel() {
+type WorkspacePanelProps = {
+  /** undefined: the first workspace; null: a new one; a string: that workspace. */
+  workspaceId?: string | null | undefined;
+  onSaved?: (workspace: Workspace) => void;
+};
+
+export function WorkspacePanel({ workspaceId, onSaved }: WorkspacePanelProps = {}) {
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [config, setConfig] = useState<ServerConfig | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
@@ -166,9 +172,13 @@ export function WorkspacePanel() {
           api.GET("/api/config"),
         ]);
         if (cancelled) return;
-        const first = workspaces.data?.[0] ?? null;
+        const all = workspaces.data ?? [];
+        const first =
+          workspaceId === undefined
+            ? (all[0] ?? null)
+            : (all.find((w) => w.id === workspaceId) ?? null);
         setWorkspace(first);
-        if (first) setForm(fromWorkspace(first));
+        setForm(first ? fromWorkspace(first) : EMPTY_FORM);
         setConfig(serverConfig.data ?? null);
       } catch {
         if (!cancelled) setLoadFailed(true);
@@ -180,7 +190,7 @@ export function WorkspacePanel() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [workspaceId]);
 
   function update(field: FieldName, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -204,6 +214,7 @@ export function WorkspacePanel() {
         setForm(fromWorkspace(result.data));
         setAccess(null);
         setStatus({ kind: "saved" });
+        onSaved?.(result.data);
         return;
       }
       setFieldErrors(fieldErrorsFrom(result.error));
