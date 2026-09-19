@@ -4,8 +4,8 @@ title: Ichnos MVP — Technical Specification
 description: Information model, agent workflow, architecture, API, GitHub conventions and security design for the Ichnos MVP.
 tags: [ichnos, mvp, architecture, langgraph, okf]
 status: stable
-generated: { by: claude/opus-5, at: 2026-09-19T12:46:45Z }
-verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T12:46:45Z }
+generated: { by: claude/opus-5, at: 2026-09-19T13:13:45Z }
+verified: { by: human:MohamedAliZouariEng, at: 2026-09-19T13:13:45Z }
 sources:
   - id: prd
     resource: https://docs.sylergy.net/s/documentation/p/athar-XwmmVmIjhs
@@ -30,6 +30,10 @@ Key decisions are recorded as ADRs:
 - [ADR-0001: Adopt OKF for repository documentation](/adr/0001-adopt-okf-for-documentation.md)
 - [ADR-0002: GitHub is the canonical source of truth](/adr/0002-github-is-canonical.md)
 - [ADR-0003: LangGraph for workflow orchestration](/adr/0003-langgraph-for-orchestration.md)
+- [ADR-0004: GitHub access through a fine-grained PAT](/adr/0004-github-access-fine-grained-pat.md)
+- [ADR-0005: One repository per workspace](/adr/0005-one-repository-per-workspace.md)
+- [ADR-0006: Ollama as an optional Compose profile](/adr/0006-ollama-optional-compose-profile.md)
+- [ADR-0007: Monorepo tooling with pnpm and uv](/adr/0007-monorepo-tooling-pnpm-uv.md)
 
 # Information model
 
@@ -270,10 +274,10 @@ Closes #456
 | LangGraph mandatory or behind an adapter | Phase 3 | Mandatory, thin adapter interface |
 | Default retrieval store | Phase 2 | SQLite + embeddings, OKF links as the graph |
 | Run updates: polling, SSE or WebSockets | Phase 3 | SSE |
-| GitHub OAuth, PAT or both | Phase 1 | Fine-grained PAT first |
-| Ollama in Docker Compose | Phase 1 | Optional profile |
+| GitHub OAuth, PAT or both | Phase 1 | Decided: fine-grained PAT ([ADR-0004](/adr/0004-github-access-fine-grained-pat.md)) |
+| Ollama in Docker Compose | Phase 1 | Decided: optional profile ([ADR-0006](/adr/0006-ollama-optional-compose-profile.md)) |
 | Slack in first release | Phase 4 | Later adapter |
-| One or many repositories per workspace | Phase 1 | One |
+| One or many repositories per workspace | Phase 1 | Decided: one ([ADR-0005](/adr/0005-one-repository-per-workspace.md)) |
 | Format of browser-edited drafts | Phase 3 | SQLite until approved, then OKF Markdown |
 
 [^brd]: Ichnos MVP — Business Requirements
