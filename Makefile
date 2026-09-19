@@ -97,3 +97,20 @@ dev: ## Run API and web together; Ctrl+C stops both
 > trap 'kill 0' EXIT; $(MAKE) api-dev & $(MAKE) web-dev & wait
 
 check: web-test
+
+# ---- Docker Compose ----
+.PHONY: up
+up: ## Build and start Ichnos with Docker Compose; returns when healthy
+> docker compose up --build --detach --wait
+
+.PHONY: down
+down: ## Stop Ichnos (the data volume is kept)
+> docker compose down
+
+.PHONY: logs
+logs: ## Follow the Docker Compose logs
+> docker compose logs --follow
+
+.PHONY: ps
+ps: ## Show the status of the Ichnos services
+> docker compose ps

@@ -13,6 +13,7 @@ class Settings(BaseSettings):
         env_prefix="ICHNOS_",
         env_file=(".env", "../../.env"),
         extra="ignore",
+        env_ignore_empty=True,
     )
 
     env: Literal["development", "test", "production"] = "development"
