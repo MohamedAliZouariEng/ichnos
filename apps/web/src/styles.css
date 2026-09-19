@@ -1,0 +1,202 @@
+:root {
+  /* Palette: vellum paper, ink, and one teal trace. */
+  --vellum: #f2f4f1;
+  --sheet: #ffffff;
+  --ink: #16202a;
+  --graphite: #5a6570;
+  --rule: #d5dad6;
+  --trace: #0f766e;
+  --ok: #2e7d32;
+  --warn: #b45309;
+  --bad: #b42318;
+  /* System fonts only: self-hosted and offline-friendly. */
+  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--vellum);
+  color: var(--ink);
+  font: 15px/1.5 var(--font-ui);
+}
+
+:focus-visible {
+  outline: 2px solid var(--trace);
+  outline-offset: 2px;
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: 15rem 1fr;
+  min-height: 100vh;
+}
+
+.sidebar {
+  border-right: 1px solid var(--rule);
+  padding: 1.5rem 1.25rem;
+}
+
+.wordmark {
+  margin: 0 0 2rem;
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+/* Signature: navigation drawn as a trace, in the order work flows. */
+.trace {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trace::before {
+  content: "";
+  position: absolute;
+  top: 0.9rem;
+  bottom: 0.9rem;
+  left: 5px;
+  border-left: 2px dotted var(--rule);
+}
+
+.trace__step {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.45rem 0;
+  color: var(--graphite);
+}
+
+.trace__node {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--rule);
+  border-radius: 50%;
+  background: var(--vellum);
+}
+
+.trace__step--current {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.trace__step--current .trace__node {
+  border-color: var(--trace);
+  background: var(--trace);
+}
+
+.trace__phase {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.main {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.topbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.75rem 2rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.content {
+  width: 100%;
+  max-width: 52rem;
+  padding: 2rem;
+}
+
+h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.75rem;
+  letter-spacing: -0.01em;
+}
+
+.lede {
+  margin: 0 0 2rem;
+  color: var(--graphite);
+}
+
+.health {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.health__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--graphite);
+}
+
+.health--ok .health__dot {
+  background: var(--ok);
+}
+
+.health--degraded .health__dot {
+  background: var(--warn);
+}
+
+.health--offline .health__dot {
+  background: var(--bad);
+}
+
+.health--checking .health__dot {
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.health__detail {
+  color: var(--graphite);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .health--checking .health__dot {
+    animation: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .topbar,
+  .content {
+    padding-inline: 1.25rem;
+  }
+}

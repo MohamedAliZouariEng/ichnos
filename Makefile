@@ -78,3 +78,22 @@ ts-typecheck: ## Type-check all TypeScript packages
 > pnpm -r --if-present run typecheck
 
 check: contracts-check ts-typecheck
+
+# ---- Web (apps/web) ----
+.PHONY: web-dev
+web-dev: ## Run the web app on http://localhost:5173 (proxies /api to the API)
+> pnpm --filter @ichnos/web dev
+
+.PHONY: web-test
+web-test: ## Run web tests (vitest)
+> pnpm --filter @ichnos/web test
+
+.PHONY: web-build
+web-build: ## Build the web app into apps/web/dist
+> pnpm --filter @ichnos/web build
+
+.PHONY: dev
+dev: ## Run API and web together; Ctrl+C stops both
+> trap 'kill 0' EXIT; $(MAKE) api-dev & $(MAKE) web-dev & wait
+
+check: web-test
