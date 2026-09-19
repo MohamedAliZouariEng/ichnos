@@ -285,3 +285,76 @@ class Chunk(Base):
     heading: Mapped[str | None] = mapped_column(String(500))
     text: Mapped[str] = mapped_column(Text)
     start_line: Mapped[int | None] = mapped_column(Integer)
+
+
+# ---- Requirements workflow: operational data, never touched by a knowledge reset (ADR-0014) ----
+
+
+class Source(Base):
+    """An immutable intake record: pasted text, an uploaded file or a synced document."""
+
+    __tablename__ = "sources"
+    __table_args__ = (Index("ix_sources_content", "workspace_id", "content_sha256"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    workspace_id: Mapped[str] = _workspace_fk()
+    kind: Mapped[str] = mapped_column(String(20))  # pasted, upload or document
+    title: Mapped[str] = mapped_column(String(300))
+    filename: Mapped[str | None] = mapped_column(String(300))
+    document_path: Mapped[str | None] = mapped_column(String(500))
+    commit_sha: Mapped[str | None] = mapped_column(String(40))
+    media_type: Mapped[str] = mapped_column(String(50), default="text/markdown")
+    content: Mapped[str] = mapped_column(Text)
+    content_sha256: Mapped[str] = mapped_column(String(64))
+    created_by: Mapped[str] = mapped_column(String(100))
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class Artifact(TimestampMixin, Base):
+    """A generated deliverable such as a BRD, reviewed before it reaches the repository."""
+
+    __tablename__ = "artifacts"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    workspace_id: Mapped[str] = _workspace_fk()
+    kind: Mapped[str] = mapped_column(String(30))  # brd
+    title: Mapped[str] = mapped_column(String(300))
+    slug: Mapped[str] = mapped_column(String(200))
+    status: Mapped[str] = mapped_column(String(20), default="draft")
+    run_id: Mapped[str | None] = mapped_column(ForeignKey("runs.id", ondelete="SET NULL"))
+    source_ids: Mapped[list[str]] = mapped_column(JSON, default=list)
+    current_version: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class ArtifactVersion(Base):
+    """One append-only version of an artifact's Markdown."""
+
+    __tablename__ = "artifact_versions"
+    __table_args__ = (UniqueConstraint("artifact_id", "number"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    artifact_id: Mapped[str] = mapped_column(
+        ForeignKey("artifacts.id", ondelete="CASCADE"), index=True
+    )
+    number: Mapped[int] = mapped_column(Integer)
+    content: Mapped[str] = mapped_column(Text)
+    origin: Mapped[str] = mapped_column(String(20))  # generated or edited
+    actor: Mapped[str] = mapped_column(String(100))
+    parent_number: Mapped[int | None] = mapped_column(Integer)
+    findings: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list)
+    note: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class RunEvent(Base):
+    """One entry in a run's event log; its id is the Server-Sent Events id (ADR-0013)."""
+
+    __tablename__ = "run_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    run_id: Mapped[str] = mapped_column(ForeignKey("runs.id", ondelete="CASCADE"), index=True)
+    stage: Mapped[str | None] = mapped_column(String(50))
+    kind: Mapped[str] = mapped_column(String(30))
+    message: Mapped[str] = mapped_column(Text)
+    data: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
