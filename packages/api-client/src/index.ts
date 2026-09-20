@@ -43,3 +43,6 @@ export type ApproverSession = Schemas["SessionRead"];
 export type ApprovalSummary = Schemas["ApprovalSummary"];
 export type ApprovalDetail = Schemas["ApprovalDetail"];
 export type ContextPack = Schemas["ContextPackRead"];
+export type TraceRead = Schemas["TraceRead"];
+export type TraceRowRead = Schemas["TraceRowRead"];
+export type BrdRead = Schemas["BrdRead"];

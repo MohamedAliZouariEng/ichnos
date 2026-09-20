@@ -550,6 +550,48 @@
         "title": "ArtifactSummary",
         "type": "object"
       },
+      "BrdRead": {
+        "properties": {
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "trust_tier": {
+            "title": "Trust Tier",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "title",
+          "trust_tier",
+          "status"
+        ],
+        "title": "BrdRead",
+        "type": "object"
+      },
       "ConfirmationRead": {
         "properties": {
           "confirmed_by": {
@@ -916,6 +958,58 @@
           "commit_sha"
         ],
         "title": "DocumentSummary",
+        "type": "object"
+      },
+      "EvidenceRead": {
+        "properties": {
+          "confirmed": {
+            "title": "Confirmed",
+            "type": "boolean"
+          },
+          "link": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Link"
+          },
+          "origin": {
+            "title": "Origin",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "text",
+          "source",
+          "url",
+          "origin",
+          "link",
+          "confirmed"
+        ],
+        "title": "EvidenceRead",
         "type": "object"
       },
       "FindingRead": {
@@ -2132,6 +2226,134 @@
           "finished_at"
         ],
         "title": "SyncRunRead",
+        "type": "object"
+      },
+      "TraceFindingRead": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "level": {
+            "title": "Level",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "row": {
+            "title": "Row",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "level",
+          "row",
+          "message"
+        ],
+        "title": "TraceFindingRead",
+        "type": "object"
+      },
+      "TraceRead": {
+        "properties": {
+          "brd": {
+            "title": "Brd",
+            "type": "string"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/TraceFindingRead"
+            },
+            "title": "Findings",
+            "type": "array"
+          },
+          "hash": {
+            "title": "Hash",
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/TraceRowRead"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "brd",
+          "title",
+          "hash",
+          "rows",
+          "findings"
+        ],
+        "title": "TraceRead",
+        "type": "object"
+      },
+      "TraceRowRead": {
+        "properties": {
+          "children": {
+            "items": {
+              "$ref": "#/components/schemas/TraceRowRead"
+            },
+            "title": "Children",
+            "type": "array"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceRead"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "level": {
+            "title": "Level",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "id",
+          "level",
+          "key",
+          "title",
+          "status",
+          "url",
+          "evidence",
+          "children"
+        ],
+        "title": "TraceRowRead",
         "type": "object"
       },
       "ValidateRequest": {
@@ -5154,6 +5376,108 @@
         "summary": "List Sync Runs",
         "tags": [
           "sync"
+        ]
+      }
+    },
+    "/api/workspaces/{workspace_id}/trace": {
+      "get": {
+        "description": "A BRD's requirements traced to Stories, pull requests, commits and tests, validated.",
+        "operationId": "getTrace",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "brd",
+            "required": true,
+            "schema": {
+              "maxLength": 500,
+              "title": "Brd",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraceRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Workspace or BRD not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Trace",
+        "tags": [
+          "trace"
+        ]
+      }
+    },
+    "/api/workspaces/{workspace_id}/trace/brds": {
+      "get": {
+        "operationId": "listTraceableBrds",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BrdRead"
+                  },
+                  "title": "Response Listtraceablebrds",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Brds",
+        "tags": [
+          "trace"
         ]
       }
     },

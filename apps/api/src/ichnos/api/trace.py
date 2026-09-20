@@ -11,9 +11,10 @@ from ichnos.api.deps import SessionDep
 from ichnos.api.session import ApproverDep
 from ichnos.api.workspaces import get_workspace_or_404
 from ichnos.db.base import as_utc
-from ichnos.db.models import AuditEvent, LinkConfirmation
-from ichnos.trace.build import TraceError, build_trace
-from ichnos.trace.confirm import inferred_links
+from ichnos.db.models import AuditEvent, Document, LinkConfirmation
+from ichnos.trace.build import TraceError, TraceRow, build_trace
+from ichnos.trace.confirm import confirmed_links, inferred_links
+from ichnos.trace.validate import validate_trace
 
 router = APIRouter(tags=["trace"])
 ERRORS: dict[int | str, dict[str, str]] = {
@@ -142,3 +143,120 @@ def withdraw_confirmation(
     )
     session.commit()
     return read
+
+
+class EvidenceRead(BaseModel):
+    text: str
+    source: str
+    url: str | None
+    origin: str
+    link: str | None
+    confirmed: bool
+
+
+class TraceRowRead(BaseModel):
+    id: str
+    level: str
+    key: str
+    title: str
+    status: str
+    url: str | None
+    evidence: list[EvidenceRead]
+    children: list["TraceRowRead"]
+
+
+class TraceFindingRead(BaseModel):
+    code: str
+    level: str
+    row: str
+    message: str
+
+
+class TraceRead(BaseModel):
+    brd: str
+    title: str
+    hash: str
+    rows: list[TraceRowRead]
+    findings: list[TraceFindingRead]
+
+
+class BrdRead(BaseModel):
+    path: str
+    title: str | None
+    trust_tier: str
+    status: str | None
+
+
+TraceRowRead.model_rebuild()
+
+
+def _row(row: TraceRow, confirmed: set[str]) -> TraceRowRead:
+    return TraceRowRead(
+        id=row.id,
+        level=row.level,
+        key=row.key,
+        title=row.title,
+        status=row.status,
+        url=row.url,
+        evidence=[
+            EvidenceRead(
+                text=e.text,
+                source=e.source,
+                url=e.url,
+                origin=e.origin,
+                link=e.link,
+                confirmed=bool(e.link and e.link in confirmed),
+            )
+            for e in row.evidence
+        ],
+        children=[_row(child, confirmed) for child in row.children],
+    )
+
+
+@router.get(
+    "/api/workspaces/{workspace_id}/trace/brds",
+    response_model=list[BrdRead],
+    operation_id="listTraceableBrds",
+)
+def list_brds(workspace_id: str, session: SessionDep) -> list[BrdRead]:
+    workspace = get_workspace_or_404(session, workspace_id)
+    documents = session.scalars(
+        select(Document)
+        .where(Document.workspace_id == workspace.id, Document.doc_type == "BRD")
+        .order_by(Document.path)
+    )
+    return [
+        BrdRead(path=d.path, title=d.title, trust_tier=d.trust_tier, status=d.status)
+        for d in documents
+    ]
+
+
+@router.get(
+    "/api/workspaces/{workspace_id}/trace",
+    response_model=TraceRead,
+    operation_id="getTrace",
+    responses={404: {"description": "Workspace or BRD not found"}},
+)
+def get_trace(
+    workspace_id: str, brd: Annotated[str, Query(max_length=500)], session: SessionDep
+) -> TraceRead:
+    """A BRD's requirements traced to Stories, pull requests, commits and tests, validated."""
+    workspace = get_workspace_or_404(session, workspace_id)
+    try:
+        trace = build_trace(session, workspace, brd)
+    except TraceError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
+    confirmed = confirmed_links(session, workspace.id)
+    document = session.scalar(
+        select(Document).where(Document.workspace_id == workspace.id, Document.path == brd)
+    )
+    findings = validate_trace(
+        trace, confirmed=confirmed, brd_frontmatter=document.frontmatter if document else None
+    )
+    return TraceRead(
+        brd=trace.brd,
+        title=trace.title,
+        hash=trace.hash,
+        rows=[_row(row, confirmed) for row in trace.rows],
+        findings=[TraceFindingRead(**f.as_dict()) for f in findings],
+    )

@@ -708,6 +708,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workspaces/{workspace_id}/trace": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Trace
+         * @description A BRD's requirements traced to Stories, pull requests, commits and tests, validated.
+         */
+        get: operations["getTrace"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspaces/{workspace_id}/trace/brds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Brds */
+        get: operations["listTraceableBrds"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/workspaces/{workspace_id}/trace/confirmations": {
         parameters: {
             query?: never;
@@ -920,6 +957,17 @@ export interface components {
             /** Workspace Id */
             workspace_id: string;
         };
+        /** BrdRead */
+        BrdRead: {
+            /** Path */
+            path: string;
+            /** Status */
+            status: string | null;
+            /** Title */
+            title: string | null;
+            /** Trust Tier */
+            trust_tier: string;
+        };
         /** ConfirmationRead */
         ConfirmationRead: {
             /** Confirmed By */
@@ -1038,6 +1086,21 @@ export interface components {
             trust_tier: string;
             /** Type */
             type: string | null;
+        };
+        /** EvidenceRead */
+        EvidenceRead: {
+            /** Confirmed */
+            confirmed: boolean;
+            /** Link */
+            link: string | null;
+            /** Origin */
+            origin: string;
+            /** Source */
+            source: string;
+            /** Text */
+            text: string;
+            /** Url */
+            url: string | null;
         };
         /** FindingRead */
         FindingRead: {
@@ -1431,6 +1494,49 @@ export interface components {
             stage: string | null;
             /** Status */
             status: string;
+        };
+        /** TraceFindingRead */
+        TraceFindingRead: {
+            /** Code */
+            code: string;
+            /** Level */
+            level: string;
+            /** Message */
+            message: string;
+            /** Row */
+            row: string;
+        };
+        /** TraceRead */
+        TraceRead: {
+            /** Brd */
+            brd: string;
+            /** Findings */
+            findings: components["schemas"]["TraceFindingRead"][];
+            /** Hash */
+            hash: string;
+            /** Rows */
+            rows: components["schemas"]["TraceRowRead"][];
+            /** Title */
+            title: string;
+        };
+        /** TraceRowRead */
+        TraceRowRead: {
+            /** Children */
+            children: components["schemas"]["TraceRowRead"][];
+            /** Evidence */
+            evidence: components["schemas"]["EvidenceRead"][];
+            /** Id */
+            id: string;
+            /** Key */
+            key: string;
+            /** Level */
+            level: string;
+            /** Status */
+            status: string;
+            /** Title */
+            title: string;
+            /** Url */
+            url: string | null;
         };
         /** ValidateRequest */
         ValidateRequest: {
@@ -3496,6 +3602,77 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    getTrace: {
+        parameters: {
+            query: {
+                brd: string;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraceRead"];
+                };
+            };
+            /** @description Workspace or BRD not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listTraceableBrds: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrdRead"][];
+                };
             };
             /** @description Validation Error */
             422: {
