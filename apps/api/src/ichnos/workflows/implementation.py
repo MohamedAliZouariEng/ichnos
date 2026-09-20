@@ -349,7 +349,16 @@ def render_plan(plan: ImplementationPlan) -> str:
     if plan.adr_proposals:
         lines += ["", "## Proposed decisions", ""]
         for adr in plan.adr_proposals:
-            lines += [f"- **{adr.title}**: {adr.decision}{_refs(adr.cites)}"]
+            lines += [
+                f"### {adr.title}",
+                "",
+                f"**Context.** {adr.context or 'None given.'}",
+                "",
+                f"**Decision.** {adr.decision}",
+                "",
+                f"Sources: {', '.join(adr.cites) or 'none'}",
+                "",
+            ]
     return "\n".join(lines) + "\n"
 
 

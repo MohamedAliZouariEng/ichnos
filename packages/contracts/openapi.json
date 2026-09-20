@@ -616,6 +616,22 @@
         "title": "Decision",
         "type": "object"
       },
+      "DecisionChoice": {
+        "additionalProperties": false,
+        "properties": {
+          "index": {
+            "description": "1-based position in the plan's Proposed decisions",
+            "minimum": 1.0,
+            "title": "Index",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "index"
+        ],
+        "title": "DecisionChoice",
+        "type": "object"
+      },
       "DocumentDetail": {
         "properties": {
           "body": {
@@ -2899,6 +2915,87 @@
         "summary": "Get Artifact",
         "tags": [
           "artifacts"
+        ]
+      }
+    },
+    "/api/artifacts/{artifact_id}/decisions": {
+      "post": {
+        "description": "Propose one of the plan's decisions as an OKF Decision concept; writes nothing.",
+        "operationId": "proposeDecision",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "title": "Artifact Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "ichnos_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ichnos Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionChoice"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "No GitHub token configured"
+          },
+          "401": {
+            "description": "Sign in to approve"
+          },
+          "404": {
+            "description": "Approval not found"
+          },
+          "409": {
+            "description": "Not pending, changed since reviewed, or prepared for someone else"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Propose Decision",
+        "tags": [
+          "approvals"
         ]
       }
     },
