@@ -139,3 +139,37 @@ describe("Editing a plan", () => {
     expect(await screen.findByText("S-1: Expire invitations after 7 days")).toBeInTheDocument();
   });
 });
+
+const DRAFT = {
+  ...SUMMARY,
+  id: "ap-9",
+  action_type: "draft_pull_request",
+  summary: "Open a draft pull request for Story #7",
+  hash_ok: true,
+  base: {},
+  payload: {
+    kind: "draft_pull_request", approver: "human:MohamedAliZouariEng",
+    branch: "ichnos/story-7-default-invitation-expiry", base_branch: "main",
+    commit_message: "Start Story #7; no code changes yet", title: "Story #7: Default Invitation Expiry",
+    body: "Closes #7\n\n| AC-01: x | Not started | None yet |\n", story: 7,
+    plan: { path: "ichnos/plans/story-7.md", version: 1, sha256: "c".repeat(64) },
+    pack_hash: "d".repeat(64),
+  },
+};
+
+describe("Draft pull requests", () => {
+  it("shows the empty commit and the body, then the opened draft", async () => {
+    const executed = {
+      ...DRAFT, status: "executed",
+      result: { draft: true, pull_request: { number: 19, url: "https://github.com/o/r/pull/19" } },
+    };
+    review(DRAFT, { "POST /api/approvals/ap-9/approve": () => jsonResponse(200, executed) });
+    const panel = await screen.findByRole("region", { name: "Draft pull request" });
+    expect(within(panel).getByText(/0 files change/)).toBeInTheDocument();
+    expect(within(panel).getByText(/Closes #7/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Approve…" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm and write to GitHub" }));
+    expect(await screen.findByText(/Draft pull request opened/)).toBeInTheDocument();
+    expect(screen.getByText(/stays a draft until an engineer pushes code/)).toBeInTheDocument();
+  });
+});

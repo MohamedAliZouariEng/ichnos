@@ -92,6 +92,7 @@ export function App() {
           workspace={selected}
           number={Number(route.story)}
           onBack={() => navigate({ section: "github" })}
+          onOpenRun={(id) => navigate({ section: "runs", run: id })}
         />
       );
     }

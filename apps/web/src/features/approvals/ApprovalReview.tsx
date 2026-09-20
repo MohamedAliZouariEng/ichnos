@@ -4,8 +4,15 @@ import type { ApprovalDetail, ApproverSession } from "@ichnos/api-client";
 import { api } from "../../api";
 import { UNREACHABLE, detailOf } from "../../labels";
 import { StatusBadge } from "../runs/StatusBadge";
+import { DraftPrView } from "./DraftPrView";
 import { IssuesEditor } from "./IssuesEditor";
-import { ACTION_LABEL, type DocsPayload, type IssueSpec, type IssuesPayload } from "./payload";
+import {
+  ACTION_LABEL,
+  type DocsPayload,
+  type DraftPrPayload,
+  type IssueSpec,
+  type IssuesPayload,
+} from "./payload";
 
 function DocsView({ payload, base }: { payload: DocsPayload; base: Record<string, unknown> }) {
   const shas = (base.files ?? {}) as Record<string, string | null>;
@@ -75,11 +82,13 @@ function Result({ approval }: { approval: ApprovalDetail }) {
   if (approval.status === "executed" && result.pull_request) {
     return (
       <p className="notice notice--ok">
-        Pull request opened:{" "}
+        {result.draft ? "Draft pull request opened:" : "Pull request opened:"}{" "}
         <a href={result.pull_request.url} target="_blank" rel="noopener noreferrer">
           #{result.pull_request.number}
         </a>
-        . Review and merge it on GitHub.
+        {result.draft
+          ? ". It stays a draft until an engineer pushes code; Ichnos never marks it ready."
+          : ". Review and merge it on GitHub."}
       </p>
     );
   }
@@ -197,7 +206,7 @@ export function ApprovalReview({ approvalId, onBack }: Props) {
   }
   if (!approval) return <p className="hint">Loading approval…</p>;
 
-  const payload = approval.payload as unknown as DocsPayload | IssuesPayload;
+  const payload = approval.payload as unknown as DocsPayload | IssuesPayload | DraftPrPayload;
   const preparedFor = (approval.payload as { approver?: string }).approver;
   const mismatch = session?.signed_in && preparedFor && preparedFor !== session.approver;
   return (
@@ -309,6 +318,8 @@ export function ApprovalReview({ approvalId, onBack }: Props) {
           }}
           onCancel={() => setEditing(false)}
         />
+      ) : payload.kind === "draft_pull_request" ? (
+        <DraftPrView payload={payload} />
       ) : payload.kind === "docs_pull_request" ? (
         <DocsView payload={payload} base={approval.base} />
       ) : (

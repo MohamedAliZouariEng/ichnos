@@ -23,12 +23,19 @@ const TRUST: Record<string, [string, string]> = {
   repository: ["Repository", "info"],
 };
 
-type Props = { workspace: Workspace; number: number; onBack: () => void };
+type Props = {
+  workspace: Workspace;
+  number: number;
+  onBack: () => void;
+  onOpenRun?: ((runId: string) => void) | undefined;
+};
 
 /** Everything needed to implement one Story, with provenance and trust (ADR-0019). */
-export function StoryContext({ workspace, number, onBack }: Props) {
+export function StoryContext({ workspace, number, onBack, onOpenRun }: Props) {
   const [pack, setPack] = useState<ContextPack | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [planning, setPlanning] = useState(false);
+  const [planError, setPlanError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,6 +57,23 @@ export function StoryContext({ workspace, number, onBack }: Props) {
       cancelled = true;
     };
   }, [workspace.id, number]);
+
+  async function plan() {
+    setPlanning(true);
+    setPlanError(null);
+    try {
+      const { data, error: failure } = await api.POST(
+        "/api/workspaces/{workspace_id}/stories/{number}/plan",
+        { params: { path: { workspace_id: workspace.id, number } } },
+      );
+      if (data) onOpenRun?.(data.id);
+      else setPlanError(detailOf(failure) ?? "Planning could not start.");
+    } catch {
+      setPlanError(UNREACHABLE);
+    } finally {
+      setPlanning(false);
+    }
+  }
 
   const back = (
     <button type="button" className="back" onClick={onBack}>
@@ -86,6 +110,21 @@ export function StoryContext({ workspace, number, onBack }: Props) {
       {pack.absent.length > 0 && (
         <p className="notice">Not found for this Story: {pack.absent.join(", ")}.</p>
       )}
+      <section className="panel" aria-label="Implementation plan">
+        <h2>Implementation plan</h2>
+        <p className="hint">
+          Drafting a plan sends this Story and its context pack, including code, to the configured
+          model. It writes nothing to GitHub.
+        </p>
+        <button type="button" onClick={() => void plan()} disabled={planning}>
+          {planning ? "Starting…" : "Plan this Story"}
+        </button>
+        {planError && (
+          <p role="alert" className="text-bad">
+            {planError}
+          </p>
+        )}
+      </section>
       {ROLES.map(([role, label]) => {
         const items = pack.items.filter((item) => item.role === role);
         if (items.length === 0) return null;

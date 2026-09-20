@@ -1,5 +1,5 @@
-import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 
 import { jsonResponse, mockApi } from "../../test/http";
 import { StoryContext } from "./StoryContext";
@@ -49,5 +49,19 @@ describe("StoryContext", () => {
     });
     render(<StoryContext workspace={WORKSPACE} number={99} onBack={() => {}} />);
     expect(await screen.findByText("Issue #99 is not synced in this workspace.")).toBeInTheDocument();
+  });
+});
+
+describe("Planning a Story", () => {
+  it("starts a planning run and opens it", async () => {
+    mockApi({
+      "GET /api/workspaces/ws-2/stories/7/context": () => jsonResponse(200, PACK),
+      "POST /api/workspaces/ws-2/stories/7/plan": () => jsonResponse(202, { id: "run-5" }),
+    });
+    const onOpenRun = vi.fn();
+    render(<StoryContext workspace={WORKSPACE} number={7} onBack={() => {}} onOpenRun={onOpenRun} />);
+    expect(await screen.findByText(/including code, to the configured model/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Plan this Story" }));
+    await vi.waitFor(() => expect(onOpenRun).toHaveBeenCalledWith("run-5"));
   });
 });
