@@ -176,6 +176,24 @@ class RepositoryFile(Base):
     )
 
 
+class CheckRun(Base):
+    """A CI check run on a pull request's head commit: test evidence (ADR-0022)."""
+
+    __tablename__ = "check_runs"
+    __table_args__ = (UniqueConstraint("workspace_id", "github_id"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    workspace_id: Mapped[str] = _workspace_fk()
+    github_id: Mapped[int] = mapped_column(Integer)
+    head_sha: Mapped[str] = mapped_column(String(40), index=True)
+    pull_number: Mapped[int | None] = mapped_column(Integer)
+    name: Mapped[str] = mapped_column(String(200))
+    status: Mapped[str] = mapped_column(String(20))
+    conclusion: Mapped[str | None] = mapped_column(String(30))
+    url: Mapped[str] = mapped_column(String(500))
+    completed_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
+
+
 class GitHubItem(Base):
     """An Issue or pull request; they share one number space on GitHub."""
 

@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from ichnos.db.base import new_id, utc_now
 from ichnos.db.models import AuditEvent, Run, Workspace
 from ichnos.github.reader import GitHubError, GitHubReader
+from ichnos.sync.checks import sync_checks
 from ichnos.sync.documents import sync_documents
 from ichnos.sync.history import sync_comments, sync_commits, sync_issues
 from ichnos.sync.index import sync_index
@@ -23,6 +24,7 @@ STAGES: list[tuple[str, Stage]] = [
     ("issues", sync_issues),
     ("comments", sync_comments),
     ("commits", sync_commits),
+    ("checks", sync_checks),
     ("links", sync_links),
     ("index", sync_index),
 ]
