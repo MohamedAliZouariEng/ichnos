@@ -111,3 +111,15 @@ def test_plan_checks_and_claims() -> None:
         (2, "All tests pass"),
     ]
     assert claims("Implement the check. Tests will verify expiry. No code has changed.") == []
+
+
+def test_conditions_are_not_claims() -> None:
+    real = (
+        "- Story #9 (R-03) will later refine the exact error message on expired links; the current "
+        "generic InvitationError message should be kept compatible until Story #9 is implemented."
+    )
+    assert claims(real) == []  # the first real Gemini plan's risk (line 43)
+    assert claims("Verify that all tests pass on CI.") == []
+    assert claims("Once expiry is implemented, remove the flag.") == []
+    assert claims("The expiry check is implemented.") == [(1, "is implemented")]
+    assert claims("Expiry works. All tests pass.") == [(1, "All tests pass")]

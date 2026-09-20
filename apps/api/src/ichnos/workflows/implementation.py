@@ -16,6 +16,7 @@ from ichnos.honesty import claims
 from ichnos.llm import ModelProvider, Usage, fake_responder
 
 AC_RE = re.compile(r"^\s*[-*]\s*\[[ xX]\]\s*(AC-\d+)\s*:\s*(.+?)\s*$", re.M)
+AC_ID = re.compile(r"\bAC[-\s]?0*(\d+)", re.IGNORECASE)
 MAX_DOC_CHARS = 2_500
 MAX_CODE_CHARS = 6_000
 HONESTY = "Plan only: no code has changed."
@@ -30,7 +31,7 @@ Rules:
 - Files to change are code files from the pack; a file that does not exist yet has change "new".
 - Steps are small and ordered. Tests say what they check and which file they live in.
 - Map every acceptance criterion (AC-01...) to the steps and tests that satisfy it, by their
-  1-based position in your steps and tests lists.
+  1-based position in your steps and tests lists. Write criterion as the bare id: AC-01.
 - Respect the decisions (ADRs) in the pack. A new lasting decision goes in adr_proposals.
 - Anything the pack cannot answer goes in open_questions. Never invent files, APIs or facts.
 - This is a plan: never say that code was changed or that tests pass.
@@ -141,6 +142,12 @@ class ImplementationPlan(BaseModel):
     adr_proposals: list[ProposedAdr]
 
 
+def _ac_id(value: str) -> str:
+    """AC-01, ac1, AC 01 or 'AC-01: Given ...' all become AC-01."""
+    match = AC_ID.search(value)
+    return f"AC-{int(match.group(1)):02d}" if match else ""
+
+
 def _clean(value: str) -> str:
     return " ".join(value.split())
 
@@ -236,7 +243,7 @@ def enforce_implementation(
 
     coverage: list[Coverage] = []
     for ac, text in story_criteria(pack):
-        mapped = [c for c in draft.criteria if c.criterion.strip().upper() == ac]
+        mapped = [c for c in draft.criteria if _ac_id(c.criterion) == ac]
         covered_steps = list(
             dict.fromkeys(step_ids[i] for c in mapped for i in c.steps if i in step_ids)
         )

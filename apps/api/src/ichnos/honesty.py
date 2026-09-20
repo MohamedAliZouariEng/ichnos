@@ -14,6 +14,15 @@ CLAIM_PATTERNS = [
     "\u2705",
 ]
 CLAIM_RE = re.compile("|".join(CLAIM_PATTERNS), re.IGNORECASE)
+# Words that turn what follows into a condition or a check, not a statement of fact:
+# "until Story #9 is implemented", "verify that all tests pass".
+CONDITION_RE = re.compile(
+    r"\b(?:until|once|when|whenever|after|before|if|unless|whether|so that|"
+    r"verify|verifies|verifying|ensure|ensures|checks? that|checks? whether|"
+    r"confirm|confirms|assert|asserts)\b",
+    re.IGNORECASE,
+)
+CLAUSE_BREAK = re.compile(r"[.;:!?]")
 
 
 def claims(text: str) -> list[tuple[int, str]]:
@@ -21,5 +30,8 @@ def claims(text: str) -> list[tuple[int, str]]:
     found = []
     for number, line in enumerate(text.splitlines(), start=1):
         for match in CLAIM_RE.finditer(line):
+            clause = CLAUSE_BREAK.split(line[: match.start()])[-1]
+            if CONDITION_RE.search(clause):
+                continue
             found.append((number, match.group(0)))
     return found

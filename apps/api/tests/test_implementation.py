@@ -119,3 +119,27 @@ def test_the_rendered_plan_is_honest_and_complete() -> None:
     )
     assert "| `src/quire/invitations/service.py` | modify | Implements the Story. | P3 |" in text
     assert "## Open questions\n\nNone." in text
+
+
+def test_criteria_ids_are_normalised() -> None:
+    draft = ImplementationDraft.model_validate(
+        {
+            "summary": "Expire invitations.",
+            "steps": [{"text": "Refuse expired links.", "cites": ["P3"]}],
+            "tests": [{"name": "test_expired", "cites": ["P1"]}],
+            "criteria": [
+                {
+                    "criterion": "AC-01: Given an old link, when opened, then refused.",
+                    "steps": [1],
+                    "tests": [1],
+                },
+                {"criterion": "ac2", "steps": [1]},
+            ],
+        }
+    )
+    plan, _ = enforce_implementation(draft, PACK)
+    assert [(c.id, c.steps, c.tests) for c in plan.criteria] == [
+        ("AC-01", ["S1"], ["T1"]),
+        ("AC-02", ["S1"], []),
+    ]
+    assert plan.open_questions == []

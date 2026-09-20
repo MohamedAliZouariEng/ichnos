@@ -136,3 +136,19 @@ def test_claims_are_refused_before_anything_is_proposed() -> None:
     assert "| AC-01: Given x, then y. | Not started | None yet |" in payload["body"]
     with pytest.raises(ClaimError, match="is done"):
         build_draft_pr(story_title="Invitation expiry is done", **arguments)
+
+
+def test_a_plan_with_check_errors_opens_nothing(
+    app: FastAPI, client: TestClient, repo: FakeGitRepo
+) -> None:
+    from ichnos.db.models import ArtifactVersion
+
+    plan_id = planned(app, client, repo)
+    with app.state.session_factory() as session:
+        version = session.query(ArtifactVersion).filter_by(artifact_id=plan_id).one()
+        version.content += "\nThe expiry check is implemented.\n"
+        session.commit()
+    assert client.post("/api/session", json={"password": PASSPHRASE}).status_code == 200
+    refused = client.post(f"/api/artifacts/{plan_id}/draft-pull-request")
+    assert refused.status_code == 409 and "plan's checks" in refused.json()["detail"]
+    assert repo.writes == []

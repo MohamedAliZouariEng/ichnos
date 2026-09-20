@@ -14,7 +14,7 @@ from ichnos.approvals.story_pr import ClaimError, build_draft_pr
 from ichnos.context.pack import PackError
 from ichnos.db.models import Approval, Artifact, ArtifactVersion, GitHubItem, Run, Workspace
 from ichnos.github.contents import ContentsError
-from ichnos.workflows.implementation import PLAN_KIND
+from ichnos.workflows.implementation import PLAN_KIND, plan_findings
 
 router = APIRouter(tags=["approvals"])
 
@@ -87,6 +87,11 @@ def propose_draft_pull_request(
         )
     )
     assert version is not None and story is not None
+    problems = [str(f["message"]) for f in plan_findings(version.content) if f["level"] == "error"]
+    if problems:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, "Fix the plan's checks first: " + " ".join(problems)
+        )
     repository = f"{workspace.repo_owner}/{workspace.repo_name}"
     try:
         payload, summary = build_draft_pr(

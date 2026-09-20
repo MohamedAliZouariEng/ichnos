@@ -14,7 +14,7 @@ from ichnos.context.pack import PackError, build_pack
 from ichnos.db.base import utc_now
 from ichnos.db.models import Artifact, ArtifactVersion, Run, Workspace
 from ichnos.github.contents import ContentsError, ContentsReader
-from ichnos.workflows.implementation import PLAN_KIND
+from ichnos.workflows.implementation import PLAN_KIND, plan_findings
 
 router = APIRouter(tags=["approvals"])
 
@@ -54,6 +54,11 @@ def propose_decision(
     if version is None or body.index > len(proposals):
         raise HTTPException(
             status.HTTP_404_NOT_FOUND, f"The plan proposes no decision number {body.index}."
+        )
+    problems = [str(f["message"]) for f in plan_findings(version.content) if f["level"] == "error"]
+    if problems:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, "Fix the plan's checks first: " + " ".join(problems)
         )
     recorded = dict(ref.split(":", 1) for ref in artifact.source_ids or [] if ":" in ref)
     story = int(recorded.get("story", "0") or 0)
