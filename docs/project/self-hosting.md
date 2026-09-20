@@ -160,3 +160,15 @@ Ichnos reads a repository freely, but it writes to GitHub only after a person ap
 **Planning.** An approved BRD can be planned once: **Plan Epic and Stories** drafts one Epic and three to five Stories, then waits for your approval before creating any Issue. You can edit the Issues' titles and bodies before approving; the edited text is what gets written. Merge the BRD's pull request **before** planning, so Ichnos can propose recording the Issue numbers in the BRD. If you planned first, use **Link Issues into the BRD** on the planning run's page after merging.
 
 **Working with two repositories.** Ichnos's own repository and the repository it writes to look alike on GitHub. When you merge from the command line, always name the repository: `gh pr merge <number> --repo <owner>/<name>`.
+
+## Story context and implementation
+
+**Code awareness.** Every sync also records the repository's files outside the documentation paths: path, blob SHA, size and language. File contents are not stored ([ADR-0019](/adr/0019-context-packs.md)).
+
+**Context pack.** In **GitHub context**, **Context pack** on an Issue shows everything needed to implement that Story: its Epic, the BRD and techspec it references, the ADRs they cite or that match its words, related Issues and pull requests, and code files chosen by the paths and names it mentions. Every item has an identifier (`P1`, `P2`…), its source (a path at a blob SHA, or an Issue or pull request number), its trust tier, and flags such as *unverified*, *stale*, *merged* or *closed without merging*. Parts that do not exist are listed as not found. Code is read at the commit the last sync recorded, one request per file, at most 20 files of 40 KB.
+
+**Planning a Story.** **Plan this Story** sends the Story and its context pack, including code, to the configured model, and stores the result as an implementation plan you can review, edit and version. Code checks the plan: every acceptance criterion maps to steps or tests or becomes an open question, files are in the pack or marked new, citations point at real pack items, and the plan keeps the line "Plan only: no code has changed." A plan never claims finished work; conditions such as "until Story #9 is implemented" are allowed ([ADR-0020](/adr/0020-implementation-plans.md)).
+
+**Draft pull request.** On a plan without check errors, **Open draft PR…** proposes a branch `ichnos/story-<number>-…` with one empty commit and a draft pull request that closes the Story, lists every acceptance criterion as not started, summarises the plan, names the context it used and discloses AI assistance. Ichnos first rebuilds the context pack: if anything changed since the plan was drafted, it asks you to plan again. After your approval, the pull request changes 0 files; Ichnos never marks it ready or merges it ([ADR-0021](/adr/0021-draft-pull-requests-for-stories.md)).
+
+**Decisions.** A plan may propose decisions under **Proposed decisions**. **Publish decision…** turns one into the next ADR, written as an OKF `Decision` concept, through the same approved documentation pull request as a BRD.

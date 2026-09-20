@@ -235,6 +235,8 @@ Every operation that writes to GitHub first creates a pending approval; the appr
 
 Phase 4 adds approvals ([ADR-0015](/adr/0015-pending-actions-and-one-write-client.md)): `GET`, `POST` and `DELETE /api/session`; `GET /api/workspaces/{id}/approvals` and `GET /api/approvals/{id}`; `POST /api/approvals/{id}/approve`, `/reject` and `/revise`; `POST /api/artifacts/{id}/publish` and `/plan`; and `POST /api/runs/{id}/link-issues`.
 
+Phase 5 adds context packs and implementation ([ADR-0019](/adr/0019-context-packs.md) to [ADR-0021](/adr/0021-draft-pull-requests-for-stories.md)): `GET /api/workspaces/{id}/stories/{number}/context`, `POST /api/workspaces/{id}/stories/{number}/plan`, and `POST /api/artifacts/{id}/draft-pull-request` and `/decisions`.
+
 # GitHub conventions
 
 ## Labels

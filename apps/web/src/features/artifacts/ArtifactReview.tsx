@@ -18,8 +18,8 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "changes", label: "Changes" },
 ];
 
-function Findings({ findings }: { findings: Finding[] }) {
-  if (findings.length === 0) return <p className="hint">No OKF findings.</p>;
+function Findings({ findings, empty }: { findings: Finding[]; empty: string }) {
+  if (findings.length === 0) return <p className="hint">{empty}</p>;
   return (
     <ul className="findings">
       {findings.map((finding, index) => (
@@ -292,7 +292,7 @@ export function ArtifactReview({
                 ) : live === null ? (
                   <p className="hint">Checking…</p>
                 ) : (
-                  <Findings findings={live} />
+                  <Findings findings={live} empty={artifact.kind === "implementation-plan" ? "No plan findings." : "No OKF findings."} />
                 )}
               </section>
             </div>
@@ -371,7 +371,7 @@ export function ArtifactReview({
           </section>
           <section className="panel" aria-label="Findings">
             <h2>{artifact.kind === "implementation-plan" ? "Plan checks" : "OKF findings"}</h2>
-            <Findings findings={shown.finding_details} />
+            <Findings findings={shown.finding_details} empty={artifact.kind === "implementation-plan" ? "No plan findings." : "No OKF findings."} />
           </section>
         </aside>
       </div>

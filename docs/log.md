@@ -1,6 +1,8 @@
 # Documentation Update Log
 
 ## 2026-09-20
+* **Update**: Added Story context, planning and draft pull requests to the [self-hosting guide](/project/self-hosting.md), and honesty tests to the [development guide](/project/development.md).
+* **Update**: Aligned the [technical specification](/specs/ichnos-mvp/techspec.md) with Phase 5: API scope.
 * **Update**: Added approvals, publishing and planning to the [self-hosting guide](/project/self-hosting.md), and approval tests to the [development guide](/project/development.md).
 * **Update**: Aligned the [technical specification](/specs/ichnos-mvp/techspec.md) with Phase 4: API scope.
 
