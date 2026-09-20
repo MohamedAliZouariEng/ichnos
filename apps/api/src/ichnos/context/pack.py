@@ -167,7 +167,11 @@ class _Builder:
 
     def add_item(self, item: GitHubItem, role: str, reason: str) -> bool:
         kind = "Pull request" if item.item_type == "pull_request" else "Issue"
-        flags = ["closed"] if item.state == "closed" else []
+        flags: list[str] = []
+        if item.item_type == "pull_request" and item.merged_at is not None:
+            flags = ["merged"]
+        elif item.state == "closed":
+            flags = ["closed without merging"] if item.item_type == "pull_request" else ["closed"]
         return self._add(
             f"item:{item.number}",
             role,
