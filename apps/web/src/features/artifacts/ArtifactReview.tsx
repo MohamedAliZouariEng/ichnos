@@ -208,7 +208,7 @@ export function ArtifactReview({
           <dd className="path">{current.actor}</dd>
         </div>
         <div>
-          <dt>OKF findings</dt>
+          <dt>{artifact.kind === "implementation-plan" ? "Plan checks" : "OKF findings"}</dt>
           <dd>{current.findings}</dd>
         </div>
       </dl>
@@ -370,7 +370,7 @@ export function ArtifactReview({
             )}
           </section>
           <section className="panel" aria-label="Findings">
-            <h2>OKF findings</h2>
+            <h2>{artifact.kind === "implementation-plan" ? "Plan checks" : "OKF findings"}</h2>
             <Findings findings={shown.finding_details} />
           </section>
         </aside>

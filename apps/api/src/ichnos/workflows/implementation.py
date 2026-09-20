@@ -9,13 +9,18 @@ import re
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
 
+from ichnos.db.models import Artifact, ArtifactVersion
+from ichnos.honesty import claims
 from ichnos.llm import ModelProvider, Usage, fake_responder
 
 AC_RE = re.compile(r"^\s*[-*]\s*\[[ xX]\]\s*(AC-\d+)\s*:\s*(.+?)\s*$", re.M)
 MAX_DOC_CHARS = 2_500
 MAX_CODE_CHARS = 6_000
 HONESTY = "Plan only: no code has changed."
+PLAN_KIND = "implementation-plan"
+TITLE_PREFIX = "# Implementation plan: Story #"
 
 IMPLEMENTATION_PROMPT = """\
 You plan the implementation of one GitHub Story for an engineer.
@@ -394,3 +399,64 @@ def fake_implementation(system: str, user: str) -> dict[str, Any]:
         ],
         "risks": ["Existing invitations need a clear rule when the behaviour changes."],
     }
+
+
+def plan_findings(markdown: str) -> list[dict[str, Any]]:
+    """Checks for a plan, in the shape OKF findings are stored in."""
+    findings: list[dict[str, Any]] = []
+
+    def error(code: str, message: str, line: int = 1) -> None:
+        findings.append({"level": "error", "code": code, "message": message, "line": line})
+
+    first = next((line for line in markdown.splitlines() if line.strip()), "")
+    if not first.startswith(TITLE_PREFIX):
+        error("plan-title", f"A plan starts with its title: {TITLE_PREFIX}<number>, <title>.")
+    if HONESTY not in markdown:
+        error("plan-honesty", f"A plan keeps the line: {HONESTY}")
+    if "## Acceptance criteria" not in markdown:
+        error("plan-criteria", "A plan keeps its Acceptance criteria section.")
+    for line, words in claims(markdown):
+        error(
+            "plan-claim", f'A plan cannot claim finished work before code exists: "{words}".', line
+        )
+    return findings
+
+
+def plan_slug(plan: ImplementationPlan) -> str:
+    words = re.sub(r"[^a-z0-9]+", "-", plan.title.lower()).strip("-")[:60].rstrip("-")
+    return f"story-{plan.story}-{words}" if words else f"story-{plan.story}"
+
+
+def store_plan(
+    session: Session,
+    *,
+    workspace_id: str,
+    plan: ImplementationPlan,
+    markdown: str,
+    actor: str,
+    run_id: str | None = None,
+) -> Artifact:
+    """Keep the plan as an Ichnos artifact with append-only versions (ADR-0020)."""
+    artifact = Artifact(
+        workspace_id=workspace_id,
+        kind=PLAN_KIND,
+        title=f"Story #{plan.story}: {plan.title}"[:300],
+        slug=plan_slug(plan),
+        status="draft",
+        run_id=run_id,
+        source_ids=[f"story:{plan.story}", f"pack:{plan.pack_hash}"],
+        current_version=1,
+    )
+    session.add(artifact)
+    session.flush()
+    session.add(
+        ArtifactVersion(
+            artifact_id=artifact.id,
+            number=1,
+            content=markdown,
+            origin="generated",
+            actor=actor,
+            findings=plan_findings(markdown),
+        )
+    )
+    return artifact
