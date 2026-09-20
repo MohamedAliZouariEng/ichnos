@@ -26,9 +26,15 @@ Run `make doctor`. It checks the database, migrations, data folder, GitHub token
 
 **Approving an action fails with 403 or "Resource not accessible".** The token can read but not write. Create a fine-grained token with Contents, Issues and Pull requests set to read and write for your repository, put it in `ICHNOS_GITHUB_TOKEN`, and run `make up`. Ichnos still writes nothing without your approval.[^adr-0015]
 
+**`make doctor` says the value does not look like a GitHub token.** `.env` still holds a placeholder or a partial paste. Paste the whole token; fine-grained tokens start with `github_pat_`.
+
 **`make doctor` says GitHub refused the token (401).** The token expired or was revoked. Create a new one as above.
 
 **`make doctor` fails for a repository (404 or 403).** The token was created before the repository existed, or for other repositories. Edit the token's repository access, or correct the repository name in the workspace.
+
+**`make demo` fails with `lookup … i/o timeout`.** Your machine could not resolve a registry name: a network or DNS problem outside Ichnos. Check the connection and run `make demo` again; on Ubuntu, `sudo systemctl restart systemd-resolved` often helps.
+
+**`make demo` says the demo repository is not reachable.** The token was created for other repositories. Edit its repository access to include your demo repository.
 
 **`make demo-repo` fails while pushing.** Your `gh` login may lack permission to push workflow files. Run `gh auth refresh -s workflow`, then `make demo-repo` again.
 

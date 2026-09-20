@@ -10,6 +10,8 @@ from ichnos.db.models import Workspace
 from ichnos.doctor import Check, run_checks
 from ichnos.settings import Settings
 
+TOKEN = "github_pat_" + "x" * 82
+
 
 @pytest.fixture
 def factory() -> Iterator[sessionmaker[Session]]:
@@ -42,7 +44,7 @@ def checks(factory: sessionmaker[Session], transport: httpx.MockTransport) -> di
 
 
 def configure(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("ICHNOS_GITHUB_TOKEN", "test-token-value")
+    monkeypatch.setenv("ICHNOS_GITHUB_TOKEN", TOKEN)
     monkeypatch.setenv("ICHNOS_LLM_PROVIDER", "fake")
     monkeypatch.setenv("ICHNOS_APPROVER_PASSWORD", "correct horse battery staple")
 
@@ -86,4 +88,27 @@ def test_missing_configuration_is_named_and_never_leaks_a_secret(
     assert (found["model"].status, found["approvals"].status) == ("warn", "warn")
     configure(monkeypatch)
     text = " ".join(f"{c.message} {c.fix}" for c in checks(factory, github()).values())
-    assert "test-token-value" not in text and "correct horse" not in text
+    assert TOKEN not in text and "correct horse" not in text
+
+
+def test_a_placeholder_token_is_named_without_asking_github(
+    monkeypatch: pytest.MonkeyPatch, factory: sessionmaker[Session]
+) -> None:
+    configure(monkeypatch)
+    monkeypatch.setenv("ICHNOS_GITHUB_TOKEN", "aaaa")
+
+    def refuse(request: httpx.Request) -> httpx.Response:
+        raise AssertionError("a placeholder must not be sent to GitHub")
+
+    found = checks(factory, httpx.MockTransport(refuse))["GitHub token"]
+    assert found.status == "fail" and "4 characters" in found.message
+
+
+def test_the_demo_repository_is_checked_before_a_workspace_exists(
+    monkeypatch: pytest.MonkeyPatch, factory: sessionmaker[Session]
+) -> None:
+    configure(monkeypatch)
+    with factory() as session:
+        found = run_checks(Settings(), session, github(repo=404), extra=("octo/quire-stranger",))
+    by_name = {c.name: c for c in found}
+    assert by_name["repository octo/quire-stranger"].status == "fail"

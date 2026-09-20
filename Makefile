@@ -146,3 +146,7 @@ demo-repo: ## Create your own copy of the Quire demo repository with gh
 > bash scripts/demo-repo.sh
 demo: ## Check the setup, start Ichnos, create the demo workspace and sync it
 > bash scripts/demo.sh
+
+.PHONY: ac-review
+ac-review: ## One recorded model review of acceptance criteria beside the code rules
+> docker compose exec -T api /app/.venv/bin/python -m ichnos.evaluate.review

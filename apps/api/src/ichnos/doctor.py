@@ -23,6 +23,7 @@ from ichnos.llm import provider_from_settings
 from ichnos.settings import Settings
 
 GITHUB = "https://api.github.com"
+TOKEN_PREFIXES = ("github_pat_", "ghp_", "gho_", "ghu_", "ghs_", "ghr_")
 TOKEN_FIX = (
     "Set ICHNOS_GITHUB_TOKEN in .env to a fine-grained token for your repository, with "
     "Contents, Issues and Pull requests set to read and write."
@@ -87,10 +88,21 @@ def _data_dir(settings: Settings) -> Check:
     )
 
 
-def _github(settings: Settings, workspaces: list[Workspace], transport: Any) -> list[Check]:
+def _github(settings: Settings, repositories: list[str], transport: Any) -> list[Check]:
     token = settings.github_token
     if token is None or not token.get_secret_value():
         return [Check("GitHub token", "fail", "No GitHub token is configured.", TOKEN_FIX)]
+    value = token.get_secret_value().strip()
+    if not value.startswith(TOKEN_PREFIXES) or len(value) < 40:
+        return [
+            Check(
+                "GitHub token",
+                "fail",
+                f"The value does not look like a GitHub token ({len(value)} characters, "
+                "no known prefix such as github_pat_).",
+                "Paste the token you created on GitHub; it starts with github_pat_. " + TOKEN_FIX,
+            )
+        ]
     headers = {
         "Authorization": f"Bearer {token.get_secret_value()}",
         "Accept": "application/vnd.github+json",
@@ -118,9 +130,9 @@ def _github(settings: Settings, workspaces: list[Workspace], transport: Any) -> 
                     )
                 ]
             checks.append(Check("GitHub token", "ok", f"Accepted for {user.json().get('login')}."))
-            for ws in workspaces:
-                name = f"repository {ws.repo_owner}/{ws.repo_name}"
-                repo = client.get(f"{GITHUB}/repos/{ws.repo_owner}/{ws.repo_name}", headers=headers)
+            for repository in repositories:
+                name = f"repository {repository}"
+                repo = client.get(f"{GITHUB}/repos/{repository}", headers=headers)
                 if repo.status_code == 200:
                     checks.append(Check(name, "ok", "Reachable with this token."))
                 else:
@@ -170,12 +182,16 @@ def _approvals(settings: Settings) -> Check:
     )
 
 
-def run_checks(settings: Settings, session: Session, transport: Any = None) -> list[Check]:
-    workspaces = list(session.scalars(select(Workspace)))
+def run_checks(
+    settings: Settings, session: Session, transport: Any = None, extra: tuple[str, ...] = ()
+) -> list[Check]:
+    """extra: repositories to check before any workspace names them (make demo)."""
+    repositories = [f"{w.repo_owner}/{w.repo_name}" for w in session.scalars(select(Workspace))]
+    repositories += [r for r in extra if r and r not in repositories]
     return [
         *_database(session),
         _data_dir(settings),
-        *_github(settings, workspaces, transport),
+        *_github(settings, repositories, transport),
         _model(settings),
         _approvals(settings),
     ]
@@ -186,7 +202,8 @@ def main() -> int:
 
     settings = Settings()
     with make_session_factory(make_engine(settings))() as session:
-        checks = run_checks(settings, session)
+        extra = tuple(r for r in [os.environ.get("ICHNOS_CHECK_REPOSITORY", "")] if r)
+        checks = run_checks(settings, session, extra=extra)
     for check in checks:
         print(f"  {check.status:<4}  {check.name:<32} {check.message}")
         if check.fix and check.status != "ok":

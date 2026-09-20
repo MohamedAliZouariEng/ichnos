@@ -24,7 +24,7 @@ port="${port:-8765}"
 api="http://127.0.0.1:$port/api"
 
 docker compose up --build --detach --wait
-docker compose exec -T api /app/.venv/bin/python -m ichnos.doctor \
+docker compose exec -T -e ICHNOS_CHECK_REPOSITORY="$repo" api /app/.venv/bin/python -m ichnos.doctor \
   || fail "Fix the failed checks above, then run make demo again."
 
 id=$(curl -fsS "$api/workspaces" | python3 -c '
