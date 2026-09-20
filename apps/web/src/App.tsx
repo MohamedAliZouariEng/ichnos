@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { HealthBadge } from "./components/HealthBadge";
+import { QuickTips, seenQuickTips } from "./components/QuickTips";
 import { SessionControl } from "./components/SessionControl";
 import { WorkspaceSwitcher } from "./components/WorkspaceSwitcher";
 import { StoryContext } from "./features/context/StoryContext";
@@ -31,6 +32,7 @@ const SECTIONS: { id: string; section?: Section; label: string; phase: number }[
 
 export function App() {
   const [route, navigate] = useRoute();
+  const [tips, setTips] = useState(() => !seenQuickTips());  // shown once, then on request
   const { workspaces, selected, select, refresh } = useWorkspaces();
   const [creating, setCreating] = useState(false);
   const section: Section = creating || !selected ? "workspace" : route.section;
@@ -188,10 +190,14 @@ export function App() {
             onCreate={() => setCreating(true)}
           />
           <div className="topbar__right">
+            <button type="button" className="link" onClick={() => setTips(true)}>
+              Quick tips
+            </button>
             <SessionControl />
             <HealthBadge />
           </div>
         </header>
+      {tips && <QuickTips onClose={() => setTips(false)} />}
         <main className="content">{content()}</main>
       </div>
     </div>

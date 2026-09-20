@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { App } from "./App";
@@ -55,5 +55,21 @@ describe("App", () => {
     render(<App />);
     expect(await screen.findByText("Traceability")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Traceability" })).toBeInTheDocument();
+  });
+});
+
+describe("Quick tips", () => {
+  it("opens by itself the first time, and from the button afterwards", async () => {
+    window.localStorage.clear();
+    render(<App />);
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Skip" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    cleanup();
+
+    render(<App />);  // a second visit: no tips
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    fireEvent.click(await screen.findByRole("button", { name: "Quick tips" }));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 });
