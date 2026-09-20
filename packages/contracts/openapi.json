@@ -4916,6 +4916,64 @@
         ]
       }
     },
+    "/api/workspaces/{workspace_id}/stories/{number}/plan": {
+      "post": {
+        "description": "Build the context pack, draft the plan and store it for review.",
+        "operationId": "planStory",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "title": "Number",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "No model configured"
+          },
+          "404": {
+            "description": "Workspace or Issue not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Plan Story",
+        "tags": [
+          "runs"
+        ]
+      }
+    },
     "/api/workspaces/{workspace_id}/sync": {
       "post": {
         "operationId": "syncWorkspace",

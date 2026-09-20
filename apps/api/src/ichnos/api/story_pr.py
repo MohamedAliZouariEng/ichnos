@@ -63,7 +63,7 @@ def propose_draft_pull_request(
     number = int(story_ref)
     try:
         pack, _ = pack_with_code(
-            session, workspace, number, settings, request.app.state.github_transport
+            session, workspace, number, settings.github_token, request.app.state.github_transport
         )
     except PackError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc

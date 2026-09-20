@@ -13,6 +13,7 @@ from ichnos.api.config import router as config_router
 from ichnos.api.context import router as context_router
 from ichnos.api.decisions import router as decisions_router
 from ichnos.api.health import router as health_router
+from ichnos.api.implementation import router as implementation_router
 from ichnos.api.intake import router as intake_router
 from ichnos.api.knowledge import router as knowledge_router
 from ichnos.api.planning import router as planning_router
@@ -79,6 +80,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(context_router)
     app.include_router(story_pr_router)
     app.include_router(decisions_router)
+    app.include_router(implementation_router)
     return app
 
 
