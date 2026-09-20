@@ -54,6 +54,6 @@ describe("App", () => {
     mockShell();
     render(<App />);
     expect(await screen.findByText("Traceability")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Traceability" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Traceability" })).toBeInTheDocument();
   });
 });

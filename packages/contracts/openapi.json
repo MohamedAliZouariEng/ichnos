@@ -1,6 +1,172 @@
 {
   "components": {
     "schemas": {
+      "AnswerRead": {
+        "properties": {
+          "cited": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Cited",
+            "type": "array"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "gaps": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Gaps",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/AnswerSourceRead"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "statements": {
+            "items": {
+              "$ref": "#/components/schemas/StatementRead"
+            },
+            "title": "Statements",
+            "type": "array"
+          },
+          "tokens": {
+            "title": "Tokens",
+            "type": "integer"
+          },
+          "trail": {
+            "items": {
+              "$ref": "#/components/schemas/TrailLinkRead"
+            },
+            "title": "Trail",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "question",
+          "statements",
+          "gaps",
+          "cited",
+          "sources",
+          "trail",
+          "model",
+          "tokens",
+          "created_at"
+        ],
+        "title": "AnswerRead",
+        "type": "object"
+      },
+      "AnswerSourceRead": {
+        "properties": {
+          "excerpt": {
+            "title": "Excerpt",
+            "type": "string"
+          },
+          "flags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Flags",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "locator": {
+            "title": "Locator",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "trust": {
+            "title": "Trust",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "locator",
+          "url",
+          "trust",
+          "flags",
+          "excerpt"
+        ],
+        "title": "AnswerSourceRead",
+        "type": "object"
+      },
+      "AnswerSummary": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "gaps": {
+            "title": "Gaps",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          },
+          "statements": {
+            "title": "Statements",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "question",
+          "statements",
+          "gaps",
+          "created_at"
+        ],
+        "title": "AnswerSummary",
+        "type": "object"
+      },
       "ApprovalDetail": {
         "properties": {
           "action_type": {
@@ -550,6 +716,119 @@
         "title": "ArtifactSummary",
         "type": "object"
       },
+      "BrdRead": {
+        "properties": {
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "trust_tier": {
+            "title": "Trust Tier",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "title",
+          "trust_tier",
+          "status"
+        ],
+        "title": "BrdRead",
+        "type": "object"
+      },
+      "ConfirmationRead": {
+        "properties": {
+          "confirmed_by": {
+            "title": "Confirmed By",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "link": {
+            "title": "Link",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "required": [
+          "link",
+          "confirmed_by",
+          "note",
+          "created_at"
+        ],
+        "title": "ConfirmationRead",
+        "type": "object"
+      },
+      "ConfirmationRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "brd": {
+            "description": "The BRD whose trace contains the link",
+            "maxLength": 500,
+            "title": "Brd",
+            "type": "string"
+          },
+          "link": {
+            "description": "The inferred link's identity",
+            "maxLength": 500,
+            "title": "Link",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "required": [
+          "brd",
+          "link"
+        ],
+        "title": "ConfirmationRequest",
+        "type": "object"
+      },
       "ContextPackRead": {
         "properties": {
           "absent": {
@@ -845,6 +1124,58 @@
           "commit_sha"
         ],
         "title": "DocumentSummary",
+        "type": "object"
+      },
+      "EvidenceRead": {
+        "properties": {
+          "confirmed": {
+            "title": "Confirmed",
+            "type": "boolean"
+          },
+          "link": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Link"
+          },
+          "origin": {
+            "title": "Origin",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "text",
+          "source",
+          "url",
+          "origin",
+          "link",
+          "confirmed"
+        ],
+        "title": "EvidenceRead",
         "type": "object"
       },
       "FindingRead": {
@@ -1265,6 +1596,22 @@
           "excerpt"
         ],
         "title": "PackItemRead",
+        "type": "object"
+      },
+      "QuestionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "question": {
+            "maxLength": 500,
+            "minLength": 3,
+            "title": "Question",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question"
+        ],
+        "title": "QuestionRequest",
         "type": "object"
       },
       "Rejection": {
@@ -1955,6 +2302,27 @@
         "title": "SourceRead",
         "type": "object"
       },
+      "StatementRead": {
+        "properties": {
+          "cites": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Cites",
+            "type": "array"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "cites"
+        ],
+        "title": "StatementRead",
+        "type": "object"
+      },
       "StoryEdit": {
         "additionalProperties": false,
         "properties": {
@@ -2061,6 +2429,152 @@
           "finished_at"
         ],
         "title": "SyncRunRead",
+        "type": "object"
+      },
+      "TraceFindingRead": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "level": {
+            "title": "Level",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "row": {
+            "title": "Row",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "level",
+          "row",
+          "message"
+        ],
+        "title": "TraceFindingRead",
+        "type": "object"
+      },
+      "TraceRead": {
+        "properties": {
+          "brd": {
+            "title": "Brd",
+            "type": "string"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/TraceFindingRead"
+            },
+            "title": "Findings",
+            "type": "array"
+          },
+          "hash": {
+            "title": "Hash",
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/TraceRowRead"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "brd",
+          "title",
+          "hash",
+          "rows",
+          "findings"
+        ],
+        "title": "TraceRead",
+        "type": "object"
+      },
+      "TraceRowRead": {
+        "properties": {
+          "children": {
+            "items": {
+              "$ref": "#/components/schemas/TraceRowRead"
+            },
+            "title": "Children",
+            "type": "array"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceRead"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "level": {
+            "title": "Level",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "id",
+          "level",
+          "key",
+          "title",
+          "status",
+          "url",
+          "evidence",
+          "children"
+        ],
+        "title": "TraceRowRead",
+        "type": "object"
+      },
+      "TrailLinkRead": {
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "url"
+        ],
+        "title": "TrailLinkRead",
         "type": "object"
       },
       "ValidateRequest": {
@@ -2586,6 +3100,51 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/answers/{answer_id}": {
+      "get": {
+        "operationId": "getAnswer",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "answer_id",
+            "required": true,
+            "schema": {
+              "title": "Answer Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnswerRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Answer not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Answer",
+        "tags": [
+          "answers"
+        ]
+      }
+    },
     "/api/approvals/{approval_id}": {
       "get": {
         "operationId": "getApproval",
@@ -4407,6 +4966,112 @@
         ]
       }
     },
+    "/api/workspaces/{workspace_id}/questions": {
+      "get": {
+        "operationId": "listQuestions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AnswerSummary"
+                  },
+                  "title": "Response Listquestions",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Questions",
+        "tags": [
+          "answers"
+        ]
+      },
+      "post": {
+        "description": "Retrieve sources, answer with cited statements and stated gaps, and keep the answer.",
+        "operationId": "askQuestion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuestionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnswerRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "No model configured"
+          },
+          "404": {
+            "description": "Workspace not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "502": {
+            "description": "The model failed"
+          }
+        },
+        "summary": "Ask Question",
+        "tags": [
+          "answers"
+        ]
+      }
+    },
     "/api/workspaces/{workspace_id}/runs": {
       "get": {
         "description": "Recent runs, newest first; sync runs only when asked for with workflow=sync.",
@@ -5083,6 +5748,305 @@
         "summary": "List Sync Runs",
         "tags": [
           "sync"
+        ]
+      }
+    },
+    "/api/workspaces/{workspace_id}/trace": {
+      "get": {
+        "description": "A BRD's requirements traced to Stories, pull requests, commits and tests, validated.",
+        "operationId": "getTrace",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "brd",
+            "required": true,
+            "schema": {
+              "maxLength": 500,
+              "title": "Brd",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraceRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Workspace or BRD not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Trace",
+        "tags": [
+          "trace"
+        ]
+      }
+    },
+    "/api/workspaces/{workspace_id}/trace/brds": {
+      "get": {
+        "operationId": "listTraceableBrds",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BrdRead"
+                  },
+                  "title": "Response Listtraceablebrds",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Brds",
+        "tags": [
+          "trace"
+        ]
+      }
+    },
+    "/api/workspaces/{workspace_id}/trace/confirmations": {
+      "delete": {
+        "operationId": "withdrawLinkConfirmation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "link",
+            "required": true,
+            "schema": {
+              "maxLength": 500,
+              "title": "Link",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "ichnos_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ichnos Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfirmationRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "description": "Sign in to confirm"
+          },
+          "404": {
+            "description": "Workspace, BRD or inferred link not found"
+          },
+          "409": {
+            "description": "Already confirmed"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Withdraw Confirmation",
+        "tags": [
+          "trace"
+        ]
+      },
+      "get": {
+        "operationId": "listLinkConfirmations",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ConfirmationRead"
+                  },
+                  "title": "Response Listlinkconfirmations",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Confirmations",
+        "tags": [
+          "trace"
+        ]
+      },
+      "post": {
+        "description": "Record that a person checked an inferred link; nothing is written to GitHub.",
+        "operationId": "confirmLink",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "ichnos_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ichnos Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfirmationRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "description": "Sign in to confirm"
+          },
+          "404": {
+            "description": "Workspace, BRD or inferred link not found"
+          },
+          "409": {
+            "description": "Already confirmed"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Confirm Link",
+        "tags": [
+          "trace"
         ]
       }
     },

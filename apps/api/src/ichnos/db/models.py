@@ -176,6 +176,24 @@ class RepositoryFile(Base):
     )
 
 
+class CheckRun(Base):
+    """A CI check run on a pull request's head commit: test evidence (ADR-0022)."""
+
+    __tablename__ = "check_runs"
+    __table_args__ = (UniqueConstraint("workspace_id", "github_id"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    workspace_id: Mapped[str] = _workspace_fk()
+    github_id: Mapped[int] = mapped_column(Integer)
+    head_sha: Mapped[str] = mapped_column(String(40), index=True)
+    pull_number: Mapped[int | None] = mapped_column(Integer)
+    name: Mapped[str] = mapped_column(String(200))
+    status: Mapped[str] = mapped_column(String(20))
+    conclusion: Mapped[str | None] = mapped_column(String(30))
+    url: Mapped[str] = mapped_column(String(500))
+    completed_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
+
+
 class GitHubItem(Base):
     """An Issue or pull request; they share one number space on GitHub."""
 
@@ -298,6 +316,34 @@ class Link(Base):
     confidence: Mapped[float] = mapped_column(Float)
     resolved: Mapped[bool] = mapped_column(Boolean, default=False)
     extracted_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class LinkConfirmation(Base):
+    """A person's confirmation of an inferred link; kept across resets (ADR-0023)."""
+
+    __tablename__ = "link_confirmations"
+    __table_args__ = (UniqueConstraint("workspace_id", "link"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    workspace_id: Mapped[str] = _workspace_fk()
+    link: Mapped[str] = mapped_column(String(500))
+    confirmed_by: Mapped[str] = mapped_column(String(100))
+    note: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class StoredAnswer(Base):
+    """A question and its grounded answer, kept in Ichnos (ADR-0024)."""
+
+    __tablename__ = "answers"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    workspace_id: Mapped[str] = _workspace_fk()
+    question: Mapped[str] = mapped_column(Text)
+    answer: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    model: Mapped[str] = mapped_column(String(100))
+    tokens: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 
 class Chunk(Base):

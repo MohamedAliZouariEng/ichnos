@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from ichnos import __version__
+from ichnos.api.answers import router as answers_router
 from ichnos.api.approvals import router as approvals_router
 from ichnos.api.artifacts import router as artifacts_router
 from ichnos.api.config import router as config_router
@@ -22,6 +23,7 @@ from ichnos.api.runs import router as runs_router
 from ichnos.api.session import router as session_router
 from ichnos.api.story_pr import router as story_pr_router
 from ichnos.api.sync import router as sync_router
+from ichnos.api.trace import router as trace_router
 from ichnos.api.workspaces import router as workspaces_router
 from ichnos.auth.session import SessionStore
 from ichnos.db.engine import make_engine, make_session_factory
@@ -81,6 +83,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(story_pr_router)
     app.include_router(decisions_router)
     app.include_router(implementation_router)
+    app.include_router(trace_router)
+    app.include_router(answers_router)
     return app
 
 

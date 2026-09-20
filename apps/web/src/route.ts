@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-export type Section = "workspace" | "inbox" | "github" | "runs" | "artifacts" | "approvals";
+export type Section = "workspace" | "inbox" | "github" | "runs" | "artifacts" | "approvals" | "traceability" | "questions";
 export type Route = {
   section: Section;
   doc?: string | undefined;
@@ -8,6 +8,8 @@ export type Route = {
   artifact?: string | undefined;
   approval?: string | undefined;
   story?: string | undefined;
+  brd?: string | undefined;
+  answer?: string | undefined;
 };
 
 const SECTIONS: readonly Section[] = [
@@ -17,6 +19,8 @@ const SECTIONS: readonly Section[] = [
   "runs",
   "artifacts",
   "approvals",
+  "traceability",
+  "questions",
 ];
 
 export function parseRoute(hash: string): Route {
@@ -30,6 +34,8 @@ export function parseRoute(hash: string): Route {
     artifact: params.get("artifact") ?? undefined,
     approval: params.get("approval") ?? undefined,
     story: params.get("story") ?? undefined,
+    brd: params.get("brd") ?? undefined,
+    answer: params.get("answer") ?? undefined,
   };
 }
 
@@ -40,6 +46,8 @@ export function routeHash(route: Route): string {
   if (route.artifact) params.set("artifact", route.artifact);
   if (route.approval) params.set("approval", route.approval);
   if (route.story) params.set("story", route.story);
+  if (route.brd) params.set("brd", route.brd);
+  if (route.answer) params.set("answer", route.answer);
   const query = params.toString();
   return `#/${route.section}${query ? `?${query}` : ""}`;
 }

@@ -1072,3 +1072,43 @@ mark {
 .pack-item .badge {
   margin-left: 0.35rem;
 }
+
+/* ---- Traceability (Phase 6) ---- */
+.trace-tree,
+.trace-children,
+.trace-evidence {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.trace-row {
+  padding: 0.35rem 0;
+  border-left: 2px solid var(--rule);
+  padding-left: 0.75rem;
+}
+
+.trace-row p {
+  margin: 0.15rem 0;
+}
+
+.trace-level {
+  color: var(--graphite);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+/* ---- Questions (Phase 6) ---- */
+.statements li,
+.sources li {
+  margin: 0.35rem 0;
+}
+
+.statements .chip {
+  margin-left: 0.2rem;
+  text-decoration: none;
+}
+
+.source--cited {
+  font-weight: 600;
+}

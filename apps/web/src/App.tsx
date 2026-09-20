@@ -6,6 +6,8 @@ import { WorkspaceSwitcher } from "./components/WorkspaceSwitcher";
 import { StoryContext } from "./features/context/StoryContext";
 import { GitHubPanel } from "./features/github/GitHubPanel";
 import { ApprovalsPanel } from "./features/approvals/ApprovalsPanel";
+import { QuestionsPanel } from "./features/questions/QuestionsPanel";
+import { TracePanel } from "./features/trace/TracePanel";
 import { ArtifactsPanel } from "./features/artifacts/ArtifactsPanel";
 import { InboxPanel } from "./features/inbox/InboxPanel";
 import { RunsPanel } from "./features/runs/RunsPanel";
@@ -13,7 +15,7 @@ import { WorkspacePanel } from "./features/workspace/WorkspacePanel";
 import { type Section, useRoute } from "./route";
 import { useWorkspaces } from "./workspaces";
 
-const CURRENT_PHASE = 4;
+const CURRENT_PHASE = 6;
 
 // Ordered the way work flows through Ichnos; each section names the phase that delivers it.
 const SECTIONS: { id: string; section?: Section; label: string; phase: number }[] = [
@@ -23,7 +25,8 @@ const SECTIONS: { id: string; section?: Section; label: string; phase: number }[
   { id: "runs", section: "runs", label: "Workflow runs", phase: 3 },
   { id: "artifacts", section: "artifacts", label: "Artifacts", phase: 3 },
   { id: "approvals", section: "approvals", label: "Approvals", phase: 4 },
-  { id: "traceability", label: "Traceability", phase: 6 },
+  { id: "traceability", section: "traceability", label: "Traceability", phase: 6 },
+  { id: "questions", section: "questions", label: "Questions", phase: 6 },
 ];
 
 export function App() {
@@ -46,6 +49,26 @@ export function App() {
           documentPath={route.doc}
           onOpenDocument={(path) => navigate({ section: "inbox", doc: path })}
           onCloseDocument={() => navigate({ section: "inbox" })}
+        />
+      );
+    }
+    if (section === "questions" && selected) {
+      return (
+        <QuestionsPanel
+          key={selected.id}
+          workspace={selected}
+          answerId={route.answer}
+          onOpenAnswer={(id) => navigate({ section: "questions", answer: id })}
+        />
+      );
+    }
+    if (section === "traceability" && selected) {
+      return (
+        <TracePanel
+          key={selected.id}
+          workspace={selected}
+          brd={route.brd}
+          onSelectBrd={(path) => navigate({ section: "traceability", brd: path })}
         />
       );
     }

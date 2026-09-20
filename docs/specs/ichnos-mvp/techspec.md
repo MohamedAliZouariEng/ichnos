@@ -237,6 +237,8 @@ Phase 4 adds approvals ([ADR-0015](/adr/0015-pending-actions-and-one-write-clien
 
 Phase 5 adds context packs and implementation ([ADR-0019](/adr/0019-context-packs.md) to [ADR-0021](/adr/0021-draft-pull-requests-for-stories.md)): `GET /api/workspaces/{id}/stories/{number}/context`, `POST /api/workspaces/{id}/stories/{number}/plan`, and `POST /api/artifacts/{id}/draft-pull-request` and `/decisions`.
 
+Phase 6 adds traceability and grounded answers ([ADR-0022](/adr/0022-traceability.md) to [ADR-0024](/adr/0024-grounded-answers.md)): `GET /api/workspaces/{id}/trace` and `/trace/brds`, confirmations under `/api/workspaces/{id}/trace/confirmations`, `POST /api/workspaces/{id}/questions`, and `GET /api/answers/{id}`.
+
 # GitHub conventions
 
 ## Labels

@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/api/answers/{answer_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Answer */
+        get: operations["getAnswer"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/approvals/{approval_id}": {
         parameters: {
             query?: never;
@@ -532,6 +549,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workspaces/{workspace_id}/questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Questions */
+        get: operations["listQuestions"];
+        put?: never;
+        /**
+         * Ask Question
+         * @description Retrieve sources, answer with cited statements and stated gaps, and keep the answer.
+         */
+        post: operations["askQuestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/workspaces/{workspace_id}/runs": {
         parameters: {
             query?: never;
@@ -708,6 +746,65 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workspaces/{workspace_id}/trace": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Trace
+         * @description A BRD's requirements traced to Stories, pull requests, commits and tests, validated.
+         */
+        get: operations["getTrace"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspaces/{workspace_id}/trace/brds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Brds */
+        get: operations["listTraceableBrds"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspaces/{workspace_id}/trace/confirmations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Confirmations */
+        get: operations["listLinkConfirmations"];
+        put?: never;
+        /**
+         * Confirm Link
+         * @description Record that a person checked an inferred link; nothing is written to GitHub.
+         */
+        post: operations["confirmLink"];
+        /** Withdraw Confirmation */
+        delete: operations["withdrawLinkConfirmation"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/healthz": {
         parameters: {
             query?: never;
@@ -729,6 +826,67 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AnswerRead */
+        AnswerRead: {
+            /** Cited */
+            cited: string[];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Gaps */
+            gaps: string[];
+            /** Id */
+            id: string;
+            /** Model */
+            model: string;
+            /** Question */
+            question: string;
+            /** Sources */
+            sources: components["schemas"]["AnswerSourceRead"][];
+            /** Statements */
+            statements: components["schemas"]["StatementRead"][];
+            /** Tokens */
+            tokens: number;
+            /** Trail */
+            trail: components["schemas"]["TrailLinkRead"][];
+        };
+        /** AnswerSourceRead */
+        AnswerSourceRead: {
+            /** Excerpt */
+            excerpt: string;
+            /** Flags */
+            flags: string[];
+            /** Id */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Locator */
+            locator: string;
+            /** Title */
+            title: string;
+            /** Trust */
+            trust: string;
+            /** Url */
+            url: string | null;
+        };
+        /** AnswerSummary */
+        AnswerSummary: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Gaps */
+            gaps: number;
+            /** Id */
+            id: string;
+            /** Question */
+            question: string;
+            /** Statements */
+            statements: number;
+        };
         /** ApprovalDetail */
         ApprovalDetail: {
             /** Action Type */
@@ -898,6 +1056,46 @@ export interface components {
             /** Workspace Id */
             workspace_id: string;
         };
+        /** BrdRead */
+        BrdRead: {
+            /** Path */
+            path: string;
+            /** Status */
+            status: string | null;
+            /** Title */
+            title: string | null;
+            /** Trust Tier */
+            trust_tier: string;
+        };
+        /** ConfirmationRead */
+        ConfirmationRead: {
+            /** Confirmed By */
+            confirmed_by: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Link */
+            link: string;
+            /** Note */
+            note: string | null;
+        };
+        /** ConfirmationRequest */
+        ConfirmationRequest: {
+            /**
+             * Brd
+             * @description The BRD whose trace contains the link
+             */
+            brd: string;
+            /**
+             * Link
+             * @description The inferred link's identity
+             */
+            link: string;
+            /** Note */
+            note?: string | null;
+        };
         /** ContextPackRead */
         ContextPackRead: {
             /** Absent */
@@ -987,6 +1185,21 @@ export interface components {
             trust_tier: string;
             /** Type */
             type: string | null;
+        };
+        /** EvidenceRead */
+        EvidenceRead: {
+            /** Confirmed */
+            confirmed: boolean;
+            /** Link */
+            link: string | null;
+            /** Origin */
+            origin: string;
+            /** Source */
+            source: string;
+            /** Text */
+            text: string;
+            /** Url */
+            url: string | null;
         };
         /** FindingRead */
         FindingRead: {
@@ -1135,6 +1348,11 @@ export interface components {
             trust: string;
             /** Url */
             url: string | null;
+        };
+        /** QuestionRequest */
+        QuestionRequest: {
+            /** Question */
+            question: string;
         };
         /** Rejection */
         Rejection: {
@@ -1348,6 +1566,13 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** StatementRead */
+        StatementRead: {
+            /** Cites */
+            cites: string[];
+            /** Text */
+            text: string;
+        };
         /** StoryEdit */
         StoryEdit: {
             /** Body */
@@ -1380,6 +1605,56 @@ export interface components {
             stage: string | null;
             /** Status */
             status: string;
+        };
+        /** TraceFindingRead */
+        TraceFindingRead: {
+            /** Code */
+            code: string;
+            /** Level */
+            level: string;
+            /** Message */
+            message: string;
+            /** Row */
+            row: string;
+        };
+        /** TraceRead */
+        TraceRead: {
+            /** Brd */
+            brd: string;
+            /** Findings */
+            findings: components["schemas"]["TraceFindingRead"][];
+            /** Hash */
+            hash: string;
+            /** Rows */
+            rows: components["schemas"]["TraceRowRead"][];
+            /** Title */
+            title: string;
+        };
+        /** TraceRowRead */
+        TraceRowRead: {
+            /** Children */
+            children: components["schemas"]["TraceRowRead"][];
+            /** Evidence */
+            evidence: components["schemas"]["EvidenceRead"][];
+            /** Id */
+            id: string;
+            /** Key */
+            key: string;
+            /** Level */
+            level: string;
+            /** Status */
+            status: string;
+            /** Title */
+            title: string;
+            /** Url */
+            url: string | null;
+        };
+        /** TrailLinkRead */
+        TrailLinkRead: {
+            /** Label */
+            label: string;
+            /** Url */
+            url: string;
         };
         /** ValidateRequest */
         ValidateRequest: {
@@ -1542,6 +1817,44 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    getAnswer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                answer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnswerRead"];
+                };
+            };
+            /** @description Answer not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     getApproval: {
         parameters: {
             query?: never;
@@ -2962,6 +3275,93 @@ export interface operations {
             };
         };
     };
+    listQuestions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnswerSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    askQuestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuestionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnswerRead"];
+                };
+            };
+            /** @description No model configured */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Workspace not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description The model failed */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     listRuns: {
         parameters: {
             query?: {
@@ -3441,6 +3841,222 @@ export interface operations {
             };
             /** @description Workspace not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    getTrace: {
+        parameters: {
+            query: {
+                brd: string;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraceRead"];
+                };
+            };
+            /** @description Workspace or BRD not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listTraceableBrds: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrdRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listLinkConfirmations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmationRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirmLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: {
+                ichnos_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfirmationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmationRead"];
+                };
+            };
+            /** @description Sign in to confirm */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Workspace, BRD or inferred link not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Already confirmed */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    withdrawLinkConfirmation: {
+        parameters: {
+            query: {
+                link: string;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: {
+                ichnos_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmationRead"];
+                };
+            };
+            /** @description Sign in to confirm */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Workspace, BRD or inferred link not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Already confirmed */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

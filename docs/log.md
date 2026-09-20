@@ -1,6 +1,9 @@
 # Documentation Update Log
 
 ## 2026-09-20
+* **Update**: Added traceability and questions to the [self-hosting guide](/project/self-hosting.md), and trace and answer tests to the [development guide](/project/development.md).
+* **Update**: Aligned the [technical specification](/specs/ichnos-mvp/techspec.md) with Phase 6: API scope.
+* **Creation**: Added [ADR-0022](/adr/0022-traceability.md), [ADR-0023](/adr/0023-trace-validation-and-confirmation.md) and [ADR-0024](/adr/0024-grounded-answers.md).
 * **Update**: Added Story context, planning and draft pull requests to the [self-hosting guide](/project/self-hosting.md), and honesty tests to the [development guide](/project/development.md).
 * **Update**: Aligned the [technical specification](/specs/ichnos-mvp/techspec.md) with Phase 5: API scope.
 * **Update**: Added approvals, publishing and planning to the [self-hosting guide](/project/self-hosting.md), and approval tests to the [development guide](/project/development.md).

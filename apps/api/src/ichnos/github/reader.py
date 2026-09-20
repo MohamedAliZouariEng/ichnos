@@ -180,6 +180,13 @@ class GitHubReader:
             if entry.get("type") == "blob"
         ]
 
+    def check_runs(self, owner: str, repo: str, sha: str) -> list[dict[str, Any]]:
+        """CI check runs on one commit (ADR-0022)."""
+        data = self.get_json(
+            f"{self._repo(owner, repo)}/commits/{sha}/check-runs", {"per_page": 100}
+        )
+        return list(data.get("check_runs", []))
+
     def blob_text(self, owner: str, repo: str, sha: str) -> str:
         data = self.get_json(f"{self._repo(owner, repo)}/git/blobs/{sha}")
         content = str(data.get("content", ""))

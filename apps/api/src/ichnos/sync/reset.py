@@ -6,6 +6,7 @@ from sqlalchemy import CursorResult, delete
 from sqlalchemy.orm import Session
 
 from ichnos.db.models import (
+    CheckRun,
     Chunk,
     Commit,
     Document,
@@ -20,6 +21,7 @@ from ichnos.db.models import (
 
 # Operational data (workspace, runs, approvals, audit events) is kept.
 DERIVED = (
+    CheckRun,
     Chunk,
     Link,
     PullRequestCommit,
