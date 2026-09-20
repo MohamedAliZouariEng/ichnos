@@ -6,6 +6,7 @@ import { WorkspaceSwitcher } from "./components/WorkspaceSwitcher";
 import { StoryContext } from "./features/context/StoryContext";
 import { GitHubPanel } from "./features/github/GitHubPanel";
 import { ApprovalsPanel } from "./features/approvals/ApprovalsPanel";
+import { QuestionsPanel } from "./features/questions/QuestionsPanel";
 import { TracePanel } from "./features/trace/TracePanel";
 import { ArtifactsPanel } from "./features/artifacts/ArtifactsPanel";
 import { InboxPanel } from "./features/inbox/InboxPanel";
@@ -25,6 +26,7 @@ const SECTIONS: { id: string; section?: Section; label: string; phase: number }[
   { id: "artifacts", section: "artifacts", label: "Artifacts", phase: 3 },
   { id: "approvals", section: "approvals", label: "Approvals", phase: 4 },
   { id: "traceability", section: "traceability", label: "Traceability", phase: 6 },
+  { id: "questions", section: "questions", label: "Questions", phase: 6 },
 ];
 
 export function App() {
@@ -47,6 +49,16 @@ export function App() {
           documentPath={route.doc}
           onOpenDocument={(path) => navigate({ section: "inbox", doc: path })}
           onCloseDocument={() => navigate({ section: "inbox" })}
+        />
+      );
+    }
+    if (section === "questions" && selected) {
+      return (
+        <QuestionsPanel
+          key={selected.id}
+          workspace={selected}
+          answerId={route.answer}
+          onOpenAnswer={(id) => navigate({ section: "questions", answer: id })}
         />
       );
     }

@@ -332,6 +332,20 @@ class LinkConfirmation(Base):
     created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 
+class StoredAnswer(Base):
+    """A question and its grounded answer, kept in Ichnos (ADR-0024)."""
+
+    __tablename__ = "answers"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    workspace_id: Mapped[str] = _workspace_fk()
+    question: Mapped[str] = mapped_column(Text)
+    answer: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    model: Mapped[str] = mapped_column(String(100))
+    tokens: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
 class Chunk(Base):
     """A heading-sized piece of text, indexed by the chunks_fts FTS5 table (ADR-0008)."""
 

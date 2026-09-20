@@ -46,3 +46,5 @@ export type ContextPack = Schemas["ContextPackRead"];
 export type TraceRead = Schemas["TraceRead"];
 export type TraceRowRead = Schemas["TraceRowRead"];
 export type BrdRead = Schemas["BrdRead"];
+export type AnswerRead = Schemas["AnswerRead"];
+export type AnswerSummary = Schemas["AnswerSummary"];

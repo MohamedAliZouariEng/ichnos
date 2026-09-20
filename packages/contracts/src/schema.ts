@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/api/answers/{answer_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Answer */
+        get: operations["getAnswer"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/approvals/{approval_id}": {
         parameters: {
             query?: never;
@@ -532,6 +549,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workspaces/{workspace_id}/questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Questions */
+        get: operations["listQuestions"];
+        put?: never;
+        /**
+         * Ask Question
+         * @description Retrieve sources, answer with cited statements and stated gaps, and keep the answer.
+         */
+        post: operations["askQuestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/workspaces/{workspace_id}/runs": {
         parameters: {
             query?: never;
@@ -788,6 +826,65 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AnswerRead */
+        AnswerRead: {
+            /** Cited */
+            cited: string[];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Gaps */
+            gaps: string[];
+            /** Id */
+            id: string;
+            /** Model */
+            model: string;
+            /** Question */
+            question: string;
+            /** Sources */
+            sources: components["schemas"]["AnswerSourceRead"][];
+            /** Statements */
+            statements: components["schemas"]["StatementRead"][];
+            /** Tokens */
+            tokens: number;
+        };
+        /** AnswerSourceRead */
+        AnswerSourceRead: {
+            /** Excerpt */
+            excerpt: string;
+            /** Flags */
+            flags: string[];
+            /** Id */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Locator */
+            locator: string;
+            /** Title */
+            title: string;
+            /** Trust */
+            trust: string;
+            /** Url */
+            url: string | null;
+        };
+        /** AnswerSummary */
+        AnswerSummary: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Gaps */
+            gaps: number;
+            /** Id */
+            id: string;
+            /** Question */
+            question: string;
+            /** Statements */
+            statements: number;
+        };
         /** ApprovalDetail */
         ApprovalDetail: {
             /** Action Type */
@@ -1250,6 +1347,11 @@ export interface components {
             /** Url */
             url: string | null;
         };
+        /** QuestionRequest */
+        QuestionRequest: {
+            /** Question */
+            question: string;
+        };
         /** Rejection */
         Rejection: {
             /** Note */
@@ -1461,6 +1563,13 @@ export interface components {
             size: number;
             /** Title */
             title: string;
+        };
+        /** StatementRead */
+        StatementRead: {
+            /** Cites */
+            cites: string[];
+            /** Text */
+            text: string;
         };
         /** StoryEdit */
         StoryEdit: {
@@ -1699,6 +1808,44 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    getAnswer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                answer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnswerRead"];
+                };
+            };
+            /** @description Answer not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     getApproval: {
         parameters: {
             query?: never;
@@ -3116,6 +3263,93 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
+            };
+        };
+    };
+    listQuestions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnswerSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    askQuestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuestionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnswerRead"];
+                };
+            };
+            /** @description No model configured */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Workspace not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description The model failed */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

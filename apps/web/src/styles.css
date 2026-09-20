@@ -1097,3 +1097,18 @@ mark {
   font-size: 0.8rem;
   text-transform: uppercase;
 }
+
+/* ---- Questions (Phase 6) ---- */
+.statements li,
+.sources li {
+  margin: 0.35rem 0;
+}
+
+.statements .chip {
+  margin-left: 0.2rem;
+  text-decoration: none;
+}
+
+.source--cited {
+  font-weight: 600;
+}
