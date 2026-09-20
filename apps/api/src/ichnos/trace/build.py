@@ -43,6 +43,7 @@ class Evidence:
     source: str
     url: str | None = None
     origin: str = "explicit"
+    link: str | None = None  # an inferred link's identity, for confirmation (ADR-0023)
 
 
 @dataclass
@@ -230,6 +231,7 @@ class _Builder:
                                 f"Pull request #{pr.number}",
                                 pr.url,
                                 origin="inferred",
+                                link=f"pull_request:{pr.number}->file:{file.path}",
                             )
                         ],
                     )
