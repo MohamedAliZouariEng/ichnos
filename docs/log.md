@@ -1,6 +1,7 @@
 # Documentation Update Log
 
 ## 2026-09-20
+* **Creation**: Added the article [Building Ichnos](/articles/building-ichnos.md).
 * **Creation**: Recorded the [v0.1.0 evaluation](/project/evaluation-v0.1.0.md) and the [retrieval evaluation](/project/retrieval-evaluation.md).
 * **Creation**: Added the [troubleshooting](/project/troubleshooting.md) and [contributing](/project/contributing.md) guides.
 * **Creation**: Added [ADR-0025](/adr/0025-evaluation-metrics.md) and [ADR-0026](/adr/0026-releases.md).
