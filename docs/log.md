@@ -1,6 +1,10 @@
 # Documentation Update Log
 
 ## 2026-09-20
+* **Creation**: Added the article [Building Ichnos](/articles/building-ichnos.md).
+* **Creation**: Recorded the [v0.1.0 evaluation](/project/evaluation-v0.1.0.md) and the [retrieval evaluation](/project/retrieval-evaluation.md).
+* **Creation**: Added the [troubleshooting](/project/troubleshooting.md) and [contributing](/project/contributing.md) guides.
+* **Creation**: Added [ADR-0025](/adr/0025-evaluation-metrics.md) and [ADR-0026](/adr/0026-releases.md).
 * **Update**: Added traceability and questions to the [self-hosting guide](/project/self-hosting.md), and trace and answer tests to the [development guide](/project/development.md).
 * **Update**: Aligned the [technical specification](/specs/ichnos-mvp/techspec.md) with Phase 6: API scope.
 * **Creation**: Added [ADR-0022](/adr/0022-traceability.md), [ADR-0023](/adr/0023-trace-validation-and-confirmation.md) and [ADR-0024](/adr/0024-grounded-answers.md).

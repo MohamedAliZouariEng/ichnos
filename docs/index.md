@@ -8,3 +8,4 @@ okf_version: "0.2"
 * [Architecture decisions](adr/) - Durable architecture decision records (ADRs).
 * [Meeting notes](meetings/) - Raw discussions that serve as sources for requirements and decisions.
 * [Project guides](project/) - Architecture overview and guides for developing, self-hosting and contributing to Ichnos.
+* [Articles](articles/) - How Ichnos works, what real data taught it, and what its first release measured.

@@ -758,6 +758,34 @@
         "title": "BrdRead",
         "type": "object"
       },
+      "CheckRead": {
+        "properties": {
+          "fix": {
+            "title": "Fix",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "status",
+          "message",
+          "fix"
+        ],
+        "title": "CheckRead",
+        "type": "object"
+      },
       "ConfirmationRead": {
         "properties": {
           "confirmed_by": {
@@ -1476,6 +1504,76 @@
           "resolved"
         ],
         "title": "LinkRead",
+        "type": "object"
+      },
+      "MetricRead": {
+        "properties": {
+          "denominator": {
+            "title": "Denominator",
+            "type": "integer"
+          },
+          "details": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Details",
+            "type": "array"
+          },
+          "higher_is_better": {
+            "title": "Higher Is Better",
+            "type": "boolean"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "numerator": {
+            "title": "Numerator",
+            "type": "integer"
+          },
+          "passed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Passed"
+          },
+          "threshold": {
+            "title": "Threshold",
+            "type": "number"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "numerator",
+          "denominator",
+          "threshold",
+          "higher_is_better",
+          "value",
+          "passed",
+          "details"
+        ],
+        "title": "MetricRead",
         "type": "object"
       },
       "ModelCheck": {
@@ -3991,6 +4089,32 @@
         ]
       }
     },
+    "/api/health/checks": {
+      "get": {
+        "description": "Database, migrations, data folder, GitHub token and repositories, model, approvals.",
+        "operationId": "getSetupChecks",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CheckRead"
+                  },
+                  "title": "Response Getsetupchecks",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Setup Checks",
+        "tags": [
+          "health"
+        ]
+      }
+    },
     "/api/runs/{run_id}": {
       "get": {
         "operationId": "getRun",
@@ -4963,6 +5087,56 @@
         "summary": "List Links",
         "tags": [
           "knowledge"
+        ]
+      }
+    },
+    "/api/workspaces/{workspace_id}/metrics": {
+      "get": {
+        "description": "Linked Stories, valid answers, testable criteria and unapproved writes, by code.",
+        "operationId": "getMetrics",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MetricRead"
+                  },
+                  "title": "Response Getmetrics",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Workspace not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Metrics",
+        "tags": [
+          "evaluation"
         ]
       }
     },

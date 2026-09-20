@@ -289,6 +289,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/health/checks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Setup Checks
+         * @description Database, migrations, data folder, GitHub token and repositories, model, approvals.
+         */
+        get: operations["getSetupChecks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/runs/{run_id}": {
         parameters: {
             query?: never;
@@ -541,6 +561,26 @@ export interface paths {
          * @description All links of the workspace, or only those touching one node (kind and key).
          */
         get: operations["listLinks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspaces/{workspace_id}/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Metrics
+         * @description Linked Stories, valid answers, testable criteria and unapproved writes, by code.
+         */
+        get: operations["getMetrics"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1067,6 +1107,17 @@ export interface components {
             /** Trust Tier */
             trust_tier: string;
         };
+        /** CheckRead */
+        CheckRead: {
+            /** Fix */
+            fix: string;
+            /** Message */
+            message: string;
+            /** Name */
+            name: string;
+            /** Status */
+            status: string;
+        };
         /** ConfirmationRead */
         ConfirmationRead: {
             /** Confirmed By */
@@ -1310,6 +1361,27 @@ export interface components {
             target_key: string;
             /** Target Kind */
             target_kind: string;
+        };
+        /** MetricRead */
+        MetricRead: {
+            /** Denominator */
+            denominator: number;
+            /** Details */
+            details: string[];
+            /** Higher Is Better */
+            higher_is_better: boolean;
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Numerator */
+            numerator: number;
+            /** Passed */
+            passed: boolean | null;
+            /** Threshold */
+            threshold: number;
+            /** Value */
+            value: number | null;
         };
         /** ModelCheck */
         ModelCheck: {
@@ -2551,6 +2623,26 @@ export interface operations {
             };
         };
     };
+    getSetupChecks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckRead"][];
+                };
+            };
+        };
+    };
     getRun: {
         parameters: {
             query?: never;
@@ -3255,6 +3347,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LinkRead"][];
+                };
+            };
+            /** @description Workspace not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    getMetrics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetricRead"][];
                 };
             };
             /** @description Workspace not found */

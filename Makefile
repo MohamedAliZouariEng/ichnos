@@ -128,3 +128,30 @@ e2e: ## Check the Phase 2 and 3 exit criteria against the running stack (make up
 > python3 scripts/e2e_sync.py
 > python3 scripts/e2e_requirements.py --bundle /tmp/ichnos-e2e-bundle
 > uv run --no-project --with-requirements scripts/requirements-docs.txt python scripts/validate_okf.py /tmp/ichnos-e2e-bundle --strict
+
+.PHONY: metrics
+metrics: ## Print the release metrics of the running stack
+> docker compose exec -T api /app/.venv/bin/python -m ichnos.evaluate
+
+.PHONY: retrieval-eval
+retrieval-eval: ## Compare basic and link-expanded retrieval on the demo questions
+> docker compose exec -T api /app/.venv/bin/python -m ichnos.evaluate.retrieval
+
+.PHONY: doctor
+doctor: ## Check the setup of the running stack: what is wrong and how to fix it
+> docker compose exec -T api /app/.venv/bin/python -m ichnos.doctor
+
+.PHONY: demo-repo demo
+demo-repo: ## Create your own copy of the Quire demo repository with gh
+> bash scripts/demo-repo.sh
+demo: ## Check the setup, start Ichnos, create the demo workspace and sync it
+> bash scripts/demo.sh
+
+.PHONY: ac-review
+ac-review: ## One recorded model review of acceptance criteria beside the code rules
+> docker compose exec -T api /app/.venv/bin/python -m ichnos.evaluate.review
+
+.PHONY: up-release
+up-release: ## Pull and start a published release instead of building: make up-release VERSION=0.1.0
+> ICHNOS_VERSION=$(VERSION) docker compose -f docker-compose.yml -f docker-compose.release.yml pull api web
+> ICHNOS_VERSION=$(VERSION) docker compose -f docker-compose.yml -f docker-compose.release.yml up --no-build --detach --wait

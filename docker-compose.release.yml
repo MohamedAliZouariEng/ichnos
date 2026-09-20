@@ -1,0 +1,7 @@
+# Run a published release instead of building from source (ADR-0026):
+#   make up-release VERSION=0.1.0
+services:
+  api:
+    image: ghcr.io/mohamedalizouarieng/ichnos-api:${ICHNOS_VERSION:?set ICHNOS_VERSION, for example 0.1.0}
+  web:
+    image: ghcr.io/mohamedalizouarieng/ichnos-web:${ICHNOS_VERSION:?set ICHNOS_VERSION, for example 0.1.0}

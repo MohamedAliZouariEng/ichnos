@@ -1,8 +1,8 @@
 """Retrieval for grounded answers (ADR-0024): numbered sources with links, trust and flags.
 
 Reuses the full-text index, adds what matching BRDs cite and the traces of their matching
-requirements, so an answer can reach from a decision to the test that checks it. A trace
-source carries its evidence trail: decision, requirement, Story, pull request and tests.
+requirements, with each trace's heading, Stories and pull requests. A trace source carries its
+evidence trail: decisions first, then requirement, Story, pull request and tests.
 """
 
 import datetime as dt
@@ -25,6 +25,8 @@ MAX_CHUNK_SOURCES = 8
 PER_FILE = 2
 MAX_EXCERPT = 1_200
 SKIPPED = ("index", "log")
+DECISION_TYPES = ("Meeting Note", "Decision")  # documents that record decisions, in trail order
+TRAIL_LEVELS = ("story", "pull_request", "test")
 
 
 @dataclass
@@ -90,13 +92,13 @@ def _label(row: TraceRow) -> str:
 
 
 def _trail(requirement: TraceRow, decisions: list[dict[str, str]]) -> list[dict[str, str]]:
-    """Decision, requirement, Story, pull request and tests, each with its link."""
+    """Decisions, requirement, Stories, pull requests and tests, each with its link."""
     links = list(decisions)
     if requirement.url:
         links.append({"label": f"BRD {requirement.key}", "url": requirement.url})
-    for _, row in _walk([requirement]):
-        if row.level in ("story", "pull_request", "test") and row.url:
-            links.append({"label": _label(row), "url": row.url})
+    rows = [row for _, row in _walk([requirement]) if row.url]
+    for level in TRAIL_LEVELS:
+        links += [{"label": _label(row), "url": str(row.url)} for row in rows if row.level == level]
     return links
 
 
@@ -114,8 +116,14 @@ class _Sources:
 
 
 def retrieve_for_question(
-    session: Session, workspace: Workspace, question: str, *, today: dt.date | None = None
+    session: Session,
+    workspace: Workspace,
+    question: str,
+    *,
+    today: dt.date | None = None,
+    expand: bool = True,
 ) -> Retrieved:
+    """expand=False returns full-text sources only, for the retrieval evaluation (ADR-0025)."""
     today = today or dt.date.today()
     words = keywords([question])
     result = Retrieved(question=question, keywords=words)
@@ -147,6 +155,18 @@ def retrieve_for_question(
             excerpt=excerpt,
         )
 
+    def add_item(item: GitHubItem, excerpt: str) -> None:
+        sources.add(
+            f"item:{item.number}",
+            kind=item.item_type,
+            title=item.title,
+            locator=f"#{item.number}",
+            url=item.url,
+            trust="github",
+            flags=_item_flags(item),
+            excerpt=excerpt,
+        )
+
     query = " OR ".join(f'"{word}"' for word in words)
     rows = session.execute(SEARCH_SQL, {"query": query, "workspace_id": ws}).all()
     per_file: Counter[str] = Counter()
@@ -167,16 +187,7 @@ def retrieve_for_question(
             item = items.get(row.source_key)
             if item is None:
                 continue
-            sources.add(
-                f"item:{item.number}",
-                kind=item.item_type,
-                title=item.title,
-                locator=f"#{item.number}",
-                url=item.url,
-                trust="github",
-                flags=_item_flags(item),
-                excerpt=row.text,
-            )
+            add_item(item, row.text)
         elif row.source_kind == "commit":
             sha = row.source_key
             sources.add(
@@ -194,21 +205,30 @@ def retrieve_for_question(
         per_file[row.source_key] += 1
 
     confirmed = confirmed_links(session, ws)
-    for path, headings in brds.items():
-        decisions: list[dict[str, str]] = []
-        for link in session.scalars(
-            select(Link).where(
-                Link.workspace_id == ws,
-                Link.source_kind == "document",
-                Link.source_key == path,
-                Link.relation == "cites",
-                Link.target_kind == "document",
+    for path, headings in brds.items() if expand else []:
+        cited_docs = [
+            docs[link.target_key]
+            for link in session.scalars(
+                select(Link).where(
+                    Link.workspace_id == ws,
+                    Link.source_kind == "document",
+                    Link.source_key == path,
+                    Link.relation == "cites",
+                    Link.target_kind == "document",
+                )
             )
-        ):
-            cited = docs.get(link.target_key)
-            if cited is not None:
-                add_document(cited, None, cited.body)
-                decisions.append({"label": cited.title or cited.path, "url": doc_url(cited)})
+            if link.target_key in docs
+        ]
+        for cited in cited_docs:
+            add_document(cited, None, cited.body)
+        decisions = [
+            {"label": cited.title or cited.path, "url": doc_url(cited)}
+            for cited in sorted(
+                (d for d in cited_docs if d.doc_type in DECISION_TYPES),
+                key=lambda d: DECISION_TYPES.index(str(d.doc_type)),
+            )
+        ]
+        brd_doc = docs.get(path)
         trace = build_trace(session, workspace, path)
         for requirement in trace.rows:
             statement = requirement.title.lower()
@@ -243,5 +263,13 @@ def retrieve_for_question(
                     flags=["inferred"] if inferred else [],
                     excerpt="; ".join([*evidence, f"status: {test_row.status}"]),
                 )
+            if brd_doc is not None:  # the trace's own heading, Stories and PRs, as sources
+                add_document(brd_doc, requirement.key, requirement.title)
+            for _, item_row in _walk([requirement]):
+                if item_row.level not in ("story", "pull_request"):
+                    continue
+                traced = items.get(item_row.key.split("#")[-1])
+                if traced is not None:
+                    add_item(traced, f"{traced.title}\n\n{traced.body or ''}")
     result.sources = sources.items
     return result
