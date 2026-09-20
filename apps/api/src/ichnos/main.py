@@ -18,6 +18,7 @@ from ichnos.api.planning import router as planning_router
 from ichnos.api.publish import router as publish_router
 from ichnos.api.runs import router as runs_router
 from ichnos.api.session import router as session_router
+from ichnos.api.story_pr import router as story_pr_router
 from ichnos.api.sync import router as sync_router
 from ichnos.api.workspaces import router as workspaces_router
 from ichnos.auth.session import SessionStore
@@ -75,6 +76,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(publish_router)
     app.include_router(planning_router)
     app.include_router(context_router)
+    app.include_router(story_pr_router)
     return app
 
 

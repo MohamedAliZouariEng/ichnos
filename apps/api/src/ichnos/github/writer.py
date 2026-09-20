@@ -140,9 +140,28 @@ class GitHubWriter:
         self._call("POST", "/git/refs", {"ref": f"refs/heads/{new_branch}", "sha": commit["sha"]})
         return str(commit["sha"])
 
-    def open_pull_request(self, *, head: str, base: str, title: str, body: str) -> Created:
+    def start_branch(self, *, base_branch: str, new_branch: str, message: str) -> str:
+        """A new branch whose only commit changes nothing: its tree is the base tree (ADR-0021)."""
+        base_sha = self.branch_head(base_branch)
+        if base_sha is None:
+            raise GitHubWriteError(f"Branch {base_branch} does not exist.")
+        tree = self._call("GET", f"/git/commits/{base_sha}")["tree"]["sha"]
+        commit = self._call(
+            "POST", "/git/commits", {"message": message, "tree": tree, "parents": [base_sha]}
+        )
+        written = self._call("GET", f"/git/commits/{commit['sha']}")
+        if written["tree"]["sha"] != tree:
+            raise GitHubWriteError("The first commit would change files; no branch was created.")
+        self._call("POST", "/git/refs", {"ref": f"refs/heads/{new_branch}", "sha": commit["sha"]})
+        return str(commit["sha"])
+
+    def open_pull_request(
+        self, *, head: str, base: str, title: str, body: str, draft: bool = False
+    ) -> Created:
         data = self._call(
-            "POST", "/pulls", {"head": head, "base": base, "title": title, "body": body}
+            "POST",
+            "/pulls",
+            {"head": head, "base": base, "title": title, "body": body, "draft": draft},
         )
         return Created(int(data["number"]), str(data["html_url"]))
 
