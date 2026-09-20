@@ -318,6 +318,20 @@ class Link(Base):
     extracted_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 
+class LinkConfirmation(Base):
+    """A person's confirmation of an inferred link; kept across resets (ADR-0023)."""
+
+    __tablename__ = "link_confirmations"
+    __table_args__ = (UniqueConstraint("workspace_id", "link"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    workspace_id: Mapped[str] = _workspace_fk()
+    link: Mapped[str] = mapped_column(String(500))
+    confirmed_by: Mapped[str] = mapped_column(String(100))
+    note: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
 class Chunk(Base):
     """A heading-sized piece of text, indexed by the chunks_fts FTS5 table (ADR-0008)."""
 

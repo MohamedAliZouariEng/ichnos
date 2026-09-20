@@ -708,6 +708,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workspaces/{workspace_id}/trace/confirmations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Confirmations */
+        get: operations["listLinkConfirmations"];
+        put?: never;
+        /**
+         * Confirm Link
+         * @description Record that a person checked an inferred link; nothing is written to GitHub.
+         */
+        post: operations["confirmLink"];
+        /** Withdraw Confirmation */
+        delete: operations["withdrawLinkConfirmation"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/healthz": {
         parameters: {
             query?: never;
@@ -897,6 +919,35 @@ export interface components {
             updated_at: string;
             /** Workspace Id */
             workspace_id: string;
+        };
+        /** ConfirmationRead */
+        ConfirmationRead: {
+            /** Confirmed By */
+            confirmed_by: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Link */
+            link: string;
+            /** Note */
+            note: string | null;
+        };
+        /** ConfirmationRequest */
+        ConfirmationRequest: {
+            /**
+             * Brd
+             * @description The BRD whose trace contains the link
+             */
+            brd: string;
+            /**
+             * Link
+             * @description The inferred link's identity
+             */
+            link: string;
+            /** Note */
+            note?: string | null;
         };
         /** ContextPackRead */
         ContextPackRead: {
@@ -3441,6 +3492,151 @@ export interface operations {
             };
             /** @description Workspace not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listLinkConfirmations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmationRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirmLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: {
+                ichnos_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfirmationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmationRead"];
+                };
+            };
+            /** @description Sign in to confirm */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Workspace, BRD or inferred link not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Already confirmed */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    withdrawLinkConfirmation: {
+        parameters: {
+            query: {
+                link: string;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: {
+                ichnos_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmationRead"];
+                };
+            };
+            /** @description Sign in to confirm */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Workspace, BRD or inferred link not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Already confirmed */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

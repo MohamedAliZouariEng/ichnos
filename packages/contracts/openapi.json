@@ -550,6 +550,77 @@
         "title": "ArtifactSummary",
         "type": "object"
       },
+      "ConfirmationRead": {
+        "properties": {
+          "confirmed_by": {
+            "title": "Confirmed By",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "link": {
+            "title": "Link",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "required": [
+          "link",
+          "confirmed_by",
+          "note",
+          "created_at"
+        ],
+        "title": "ConfirmationRead",
+        "type": "object"
+      },
+      "ConfirmationRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "brd": {
+            "description": "The BRD whose trace contains the link",
+            "maxLength": 500,
+            "title": "Brd",
+            "type": "string"
+          },
+          "link": {
+            "description": "The inferred link's identity",
+            "maxLength": 500,
+            "title": "Link",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "required": [
+          "brd",
+          "link"
+        ],
+        "title": "ConfirmationRequest",
+        "type": "object"
+      },
       "ContextPackRead": {
         "properties": {
           "absent": {
@@ -5083,6 +5154,203 @@
         "summary": "List Sync Runs",
         "tags": [
           "sync"
+        ]
+      }
+    },
+    "/api/workspaces/{workspace_id}/trace/confirmations": {
+      "delete": {
+        "operationId": "withdrawLinkConfirmation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "link",
+            "required": true,
+            "schema": {
+              "maxLength": 500,
+              "title": "Link",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "ichnos_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ichnos Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfirmationRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "description": "Sign in to confirm"
+          },
+          "404": {
+            "description": "Workspace, BRD or inferred link not found"
+          },
+          "409": {
+            "description": "Already confirmed"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Withdraw Confirmation",
+        "tags": [
+          "trace"
+        ]
+      },
+      "get": {
+        "operationId": "listLinkConfirmations",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ConfirmationRead"
+                  },
+                  "title": "Response Listlinkconfirmations",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Confirmations",
+        "tags": [
+          "trace"
+        ]
+      },
+      "post": {
+        "description": "Record that a person checked an inferred link; nothing is written to GitHub.",
+        "operationId": "confirmLink",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "ichnos_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ichnos Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfirmationRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "description": "Sign in to confirm"
+          },
+          "404": {
+            "description": "Workspace, BRD or inferred link not found"
+          },
+          "409": {
+            "description": "Already confirmed"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Confirm Link",
+        "tags": [
+          "trace"
         ]
       }
     },
