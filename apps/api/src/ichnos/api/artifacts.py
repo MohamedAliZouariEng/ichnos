@@ -13,6 +13,7 @@ from ichnos.api.sync import FindingRead
 from ichnos.api.workspaces import LOCAL_ACTOR, NOT_FOUND, get_workspace_or_404
 from ichnos.db.base import as_utc, utc_now
 from ichnos.db.models import Artifact, ArtifactVersion, AuditEvent
+from ichnos.workflows.implementation import PLAN_KIND, plan_findings
 from ichnos.workflows.specification import findings_of
 
 router = APIRouter(tags=["artifacts"])
@@ -74,7 +75,16 @@ class ValidateRequest(BaseModel):
 
 def artifact_path(artifact: Artifact) -> str:
     """Where the artifact will live in the repository once approved."""
+    if artifact.kind == PLAN_KIND:
+        return f"ichnos/plans/{artifact.slug}.md"  # never written to the repository
     return f"docs/specs/{artifact.slug}/{artifact.kind}.md"
+
+
+def findings_for(artifact: Artifact, content: str) -> list[dict[str, Any]]:
+    """OKF findings for BRDs; plan checks for implementation plans."""
+    if artifact.kind == PLAN_KIND:
+        return plan_findings(content)
+    return findings_of(artifact_path(artifact), content)
 
 
 def _version_summary(version: ArtifactVersion) -> VersionSummary:
@@ -222,7 +232,12 @@ def create_artifact_version(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "No changes to save.")
 
     number = artifact.current_version + 1
-    findings = findings_of(artifact_path(artifact), body.content)
+    findings = findings_for(artifact, body.content)
+    errors = [str(f["message"]) for f in findings if f["level"] == "error"]
+    if artifact.kind == PLAN_KIND and errors:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, "The plan was not saved. " + " ".join(errors)
+        )
     session.add(
         ArtifactVersion(
             artifact_id=artifact.id,
@@ -261,4 +276,4 @@ def validate_artifact(
 ) -> list[FindingRead]:
     """OKF findings for unsaved content; writes nothing."""
     artifact = _get(session, artifact_id)
-    return [FindingRead(**f) for f in findings_of(artifact_path(artifact), body.content)]
+    return [FindingRead(**f) for f in findings_for(artifact, body.content)]

@@ -34,6 +34,11 @@ def publish_artifact(
     artifact = session.get(Artifact, artifact_id)
     if artifact is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Artifact not found.")
+    if artifact.kind != "brd":
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "Only BRDs are published; implementation plans stay in Ichnos.",
+        )
     if artifact.status != "draft":
         raise HTTPException(
             status.HTTP_409_CONFLICT,

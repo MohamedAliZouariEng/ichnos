@@ -42,3 +42,4 @@ export type ArtifactVersionSummary = Schemas["VersionSummary"];
 export type ApproverSession = Schemas["SessionRead"];
 export type ApprovalSummary = Schemas["ApprovalSummary"];
 export type ApprovalDetail = Schemas["ApprovalDetail"];
+export type ContextPack = Schemas["ContextPackRead"];

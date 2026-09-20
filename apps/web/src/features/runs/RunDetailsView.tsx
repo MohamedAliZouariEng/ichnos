@@ -6,11 +6,29 @@ import { UNREACHABLE } from "../../labels";
 import { LinkIssues } from "./LinkIssues";
 import { StatusBadge } from "./StatusBadge";
 
-const STAGES = [
-  { name: "retrieval", label: "Retrieval" },
-  { name: "requirements", label: "Requirements" },
-  { name: "specification", label: "Specification" },
-];
+const STAGES: Record<string, { name: string; label: string }[]> = {
+  requirements: [
+    { name: "retrieval", label: "Retrieval" },
+    { name: "requirements", label: "Requirements" },
+    { name: "specification", label: "Specification" },
+  ],
+  implementation: [
+    { name: "context", label: "Context" },
+    { name: "plan", label: "Plan" },
+    { name: "store", label: "Store" },
+  ],
+  planning: [
+    { name: "planning", label: "Planning" },
+    { name: "proposal", label: "Proposal" },
+    { name: "decision", label: "Decision" },
+    { name: "record", label: "Record" },
+  ],
+};
+const TITLES: Record<string, string> = {
+  requirements: "Requirements run",
+  implementation: "Implementation run",
+  planning: "Planning run",
+};
 const STATE_LABEL = { pending: "Waiting", running: "Running…", done: "Done", failed: "Failed" };
 const FINAL_EVENTS = new Set(["run.completed", "run.failed", "run.interrupted"]);
 const TERMINAL = new Set(["succeeded", "failed", "interrupted"]);
@@ -116,12 +134,13 @@ export function RunDetailsView({ runId, onBack, onOpenArtifact, pollMs = 2000 }:
     path?: string;
     version?: number;
     requirements?: number;
+    open_questions?: number;
     findings?: number;
   };
   return (
     <article aria-labelledby="run-title" className="detail">
       {back}
-      <h1 id="run-title">Requirements run</h1>
+      <h1 id="run-title">{TITLES[run.workflow_type] ?? "Run"}</h1>
       <p className="path">{run.id}</p>
       <dl className="facts">
         <div>
@@ -141,7 +160,7 @@ export function RunDetailsView({ runId, onBack, onOpenArtifact, pollMs = 2000 }:
       </dl>
 
       <ol className="stages" aria-label="Stages">
-        {STAGES.map((stage) => {
+        {(STAGES[run.workflow_type] ?? STAGES.requirements ?? []).map((stage) => {
           const state = stageState(events, stage.name);
           return (
             <li key={stage.name} className={`stage stage--${state.state}`}>
@@ -159,11 +178,16 @@ export function RunDetailsView({ runId, onBack, onOpenArtifact, pollMs = 2000 }:
       {run.error && <p className="notice notice--bad">{run.error}</p>}
 
       {run.artifact_id && (
-        <section className="panel" aria-label="Draft BRD">
-          <h2>Draft BRD</h2>
+        <section
+          className="panel"
+          aria-label={run.workflow_type === "implementation" ? "Implementation plan" : "Draft BRD"}
+        >
+          <h2>{run.workflow_type === "implementation" ? "Implementation plan" : "Draft BRD"}</h2>
           <p>
             <span className="path">{result.path}</span> · version {result.version ?? 1} ·{" "}
-            {result.requirements ?? 0} requirements · {result.findings ?? 0} OKF findings
+            {run.workflow_type === "implementation"
+              ? `${result.open_questions ?? 0} open questions`
+              : `${result.requirements ?? 0} requirements · ${result.findings ?? 0} OKF findings`}
           </p>
           {onOpenArtifact && (
             <button type="button" onClick={() => onOpenArtifact(run.artifact_id ?? "")}>

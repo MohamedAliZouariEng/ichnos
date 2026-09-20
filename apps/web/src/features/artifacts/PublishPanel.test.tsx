@@ -46,3 +46,30 @@ describe("PublishPanel", () => {
     expect(screen.getByText("A publish action is waiting in Approvals.")).toBeInTheDocument();
   });
 });
+
+const PLAN = {
+  ...ARTIFACT,
+  kind: "implementation-plan",
+  current: {
+    ...ARTIFACT.current,
+    content:
+      "# Implementation plan: Story #7, X\n\n## Proposed decisions\n\n" +
+      "### Expire from creation\n\n**Decision.** Expire after 7 days.\n",
+  },
+};
+
+describe("Plan actions", () => {
+  it("proposes the draft pull request and publishes a decision", async () => {
+    mockApi({
+      "POST /api/artifacts/art-1/draft-pull-request": () => jsonResponse(201, { id: "ap-7" }),
+      "POST /api/artifacts/art-1/decisions": () => jsonResponse(201, { id: "ap-8" }),
+    });
+    const onOpenApproval = vi.fn();
+    render(<PublishPanel artifact={PLAN} onOpenApproval={onOpenApproval} />);
+    expect(screen.queryByRole("button", { name: "Publish…" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Open draft PR…" }));
+    await vi.waitFor(() => expect(onOpenApproval).toHaveBeenCalledWith("ap-7"));
+    fireEvent.click(screen.getByRole("button", { name: "Publish decision: Expire from creation…" }));
+    await vi.waitFor(() => expect(onOpenApproval).toHaveBeenCalledWith("ap-8"));
+  });
+});

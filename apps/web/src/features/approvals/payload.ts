@@ -11,7 +11,20 @@ export type DocsPayload = {
 export type IssueSpec = { title: string; body: string; labels: string[]; key?: string };
 export type IssuesPayload = { kind: "create_issues"; epic: IssueSpec; stories: IssueSpec[] };
 
+export type DraftPrPayload = {
+  kind: "draft_pull_request";
+  branch: string;
+  base_branch: string;
+  commit_message: string;
+  title: string;
+  body: string;
+  story: number;
+  plan: { path: string; version: number; sha256: string };
+  pack_hash: string;
+};
+
 export const ACTION_LABEL: Record<string, string> = {
+  draft_pull_request: "Draft pull request",
   docs_pull_request: "Docs pull request",
   create_issues: "Issues",
 };

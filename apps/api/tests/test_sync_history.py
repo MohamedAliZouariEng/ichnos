@@ -97,7 +97,7 @@ def _workspace(client: TestClient) -> str:
 
 def test_first_sync_imports_history(app: FastAPI, client: TestClient) -> None:
     workspace_id = _workspace(client)
-    assert _sync(client, workspace_id) == {
+    assert {k: v for k, v in _sync(client, workspace_id).items() if not k.startswith("files_")} == {
         "items_added": 3,
         "items_updated": 0,
         "items_unchanged": 0,

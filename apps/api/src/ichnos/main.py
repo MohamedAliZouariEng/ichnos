@@ -10,13 +10,17 @@ from ichnos import __version__
 from ichnos.api.approvals import router as approvals_router
 from ichnos.api.artifacts import router as artifacts_router
 from ichnos.api.config import router as config_router
+from ichnos.api.context import router as context_router
+from ichnos.api.decisions import router as decisions_router
 from ichnos.api.health import router as health_router
+from ichnos.api.implementation import router as implementation_router
 from ichnos.api.intake import router as intake_router
 from ichnos.api.knowledge import router as knowledge_router
 from ichnos.api.planning import router as planning_router
 from ichnos.api.publish import router as publish_router
 from ichnos.api.runs import router as runs_router
 from ichnos.api.session import router as session_router
+from ichnos.api.story_pr import router as story_pr_router
 from ichnos.api.sync import router as sync_router
 from ichnos.api.workspaces import router as workspaces_router
 from ichnos.auth.session import SessionStore
@@ -73,6 +77,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(approvals_router)
     app.include_router(publish_router)
     app.include_router(planning_router)
+    app.include_router(context_router)
+    app.include_router(story_pr_router)
+    app.include_router(decisions_router)
+    app.include_router(implementation_router)
     return app
 
 

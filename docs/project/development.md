@@ -104,3 +104,9 @@ Every GitHub write goes through `ichnos.approvals`. The write client (`ichnos/gi
 Tests write to `tests/fake_github_writes.py`, an in-memory repository with content-addressed blobs, trees, commits, refs, pull requests, Issues and labels. It records every write together with its `X-Ichnos-Approval` header. `tests/test_zero_unapproved_writes.py` runs the whole Phase 4 flow through the API and proves that every write belongs to an executed, human-approved action.
 
 To sign in while developing, put `ICHNOS_APPROVER_PASSWORD` in `.env`; `make dev` and `make up` read the same file but keep separate databases. Planning runs pause at a LangGraph interrupt and continue from their SQLite checkpoint when their Issues are approved or rejected, also after a restart.
+
+## Context packs, plans and honesty in tests
+
+`ichnos/context/pack.py` builds packs from the database alone; `ichnos/context/code.py` adds code contents through a fetch function, so tests pass file contents directly. `ichnos/honesty.py` lists the claims Ichnos must never make before code exists; plans, pull request titles, bodies and commit messages are checked against it. `tests/test_phase5_writes.py` runs planning, a draft pull request and a decision through the API against the recording fake repository, and proves that every write is approved, the draft changes no file, and nothing that reached GitHub claims finished work.
+
+The demo repository in `examples/demo-repository` includes a small Python package with tests. If another Python installation on your machine adds pytest plugins (ROS does, through `PYTHONPATH`), run its tests with `env -u PYTHONPATH PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 uv run --no-project --with pytest python -m pytest`.

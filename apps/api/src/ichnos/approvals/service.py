@@ -25,6 +25,7 @@ from ichnos.approvals.payload import (
     payload_hash,
     verify,
 )
+from ichnos.approvals.story_pr import draft_stale, run_draft_pull_request
 from ichnos.approvals.ticket import issue_ticket
 from ichnos.db.base import utc_now
 from ichnos.db.models import Approval, Artifact, AuditEvent, Run
@@ -89,6 +90,7 @@ def _issues_stale(writer: GitHubWriter, payload: Payload, base: Payload) -> str 
 EXECUTORS: dict[str, Executor] = {
     "docs_pull_request": Executor(_docs_stale, _docs_run),
     "create_issues": Executor(_issues_stale, run_create_issues),
+    "draft_pull_request": Executor(draft_stale, run_draft_pull_request),
 }
 
 
@@ -111,7 +113,7 @@ RUN_STATUS = {EXECUTED: "succeeded", REJECTED: "rejected", STALE: "failed", FAIL
 def _settle(session: Session, approval: Approval, status: str, error: str | None) -> None:
     """A waiting run and a published artifact follow the decision."""
     run = session.get(Run, approval.run_id)
-    if run is not None and run.status == "waiting" and run.workflow_type == "publish":
+    if run is not None and run.status == "waiting" and run.workflow_type in ("publish", "draft_pr"):
         run.status = RUN_STATUS[status]
         run.error = error
         run.finished_at = utc_now()

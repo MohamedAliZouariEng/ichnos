@@ -158,6 +158,24 @@ class Document(Base):
     )
 
 
+class RepositoryFile(Base):
+    """A repository file outside the documentation bundle; contents are not stored (ADR-0019)."""
+
+    __tablename__ = "repository_files"
+    __table_args__ = (UniqueConstraint("workspace_id", "path"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    workspace_id: Mapped[str] = _workspace_fk()
+    path: Mapped[str] = mapped_column(String(500))
+    blob_sha: Mapped[str] = mapped_column(String(40))
+    commit_sha: Mapped[str] = mapped_column(String(40))
+    size: Mapped[int | None] = mapped_column(Integer)
+    language: Mapped[str | None] = mapped_column(String(30))
+    synced_at: Mapped[dt.datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, onupdate=utc_now
+    )
+
+
 class GitHubItem(Base):
     """An Issue or pull request; they share one number space on GitHub."""
 

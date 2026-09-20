@@ -95,6 +95,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/artifacts/{artifact_id}/decisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Propose Decision
+         * @description Propose one of the plan's decisions as an OKF Decision concept; writes nothing.
+         */
+        post: operations["proposeDecision"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/artifacts/{artifact_id}/draft-pull-request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Propose Draft Pull Request
+         * @description Rebuild the Story's context, check it is the one the plan used, and propose the draft.
+         */
+        post: operations["proposeDraftPullRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/artifacts/{artifact_id}/plan": {
         parameters: {
             query?: never;
@@ -594,6 +634,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workspaces/{workspace_id}/stories/{number}/context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Context Pack
+         * @description Everything needed to implement one Story, with provenance and trust on every item.
+         */
+        get: operations["getContextPack"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspaces/{workspace_id}/stories/{number}/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Plan Story
+         * @description Build the context pack, draft the plan and store it for review.
+         */
+        post: operations["planStory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/workspaces/{workspace_id}/sync": {
         parameters: {
             query?: never;
@@ -818,10 +898,33 @@ export interface components {
             /** Workspace Id */
             workspace_id: string;
         };
+        /** ContextPackRead */
+        ContextPackRead: {
+            /** Absent */
+            absent: string[];
+            /** Hash */
+            hash: string;
+            /** Items */
+            items: components["schemas"]["PackItemRead"][];
+            /** Keywords */
+            keywords: string[];
+            /** Notes */
+            notes: string[];
+            /** Story */
+            story: number;
+        };
         /** Decision */
         Decision: {
             /** Payload Hash */
             payload_hash: string;
+        };
+        /** DecisionChoice */
+        DecisionChoice: {
+            /**
+             * Index
+             * @description 1-based position in the plan's Proposed decisions
+             */
+            index: number;
         };
         /** DocumentDetail */
         DocumentDetail: {
@@ -1011,6 +1114,27 @@ export interface components {
             provider: string | null;
             /** Total Tokens */
             total_tokens: number;
+        };
+        /** PackItemRead */
+        PackItemRead: {
+            /** Excerpt */
+            excerpt: string;
+            /** Flags */
+            flags: string[];
+            /** Id */
+            id: string;
+            /** Reason */
+            reason: string;
+            /** Role */
+            role: string;
+            /** Source */
+            source: string;
+            /** Title */
+            title: string;
+            /** Trust */
+            trust: string;
+            /** Url */
+            url: string | null;
         };
         /** Rejection */
         Rejection: {
@@ -1673,6 +1797,132 @@ export interface operations {
             };
             /** @description Artifact not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    proposeDecision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                artifact_id: string;
+            };
+            cookie?: {
+                ichnos_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionChoice"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalDetail"];
+                };
+            };
+            /** @description No GitHub token configured */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Sign in to approve */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Approval not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not pending, changed since reviewed, or prepared for someone else */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    proposeDraftPullRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                artifact_id: string;
+            };
+            cookie?: {
+                ichnos_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalDetail"];
+                };
+            };
+            /** @description No GitHub token configured */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Sign in to approve */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Approval not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not pending, changed since reviewed, or prepared for someone else */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3003,6 +3253,101 @@ export interface operations {
                 };
             };
             /** @description Workspace or source not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    getContextPack: {
+        parameters: {
+            query?: {
+                /** @description Fetch the selected code files' contents */
+                code?: boolean;
+            };
+            header?: never;
+            path: {
+                workspace_id: string;
+                number: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContextPackRead"];
+                };
+            };
+            /** @description Workspace or Issue not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description GitHub could not be read */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    planStory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                number: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunDetail"];
+                };
+            };
+            /** @description No model configured */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Workspace or Issue not found */
             404: {
                 headers: {
                     [name: string]: unknown;

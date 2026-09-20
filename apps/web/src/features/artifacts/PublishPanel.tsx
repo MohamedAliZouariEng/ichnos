@@ -3,6 +3,7 @@ import type { ArtifactDetail } from "@ichnos/api-client";
 
 import { api } from "../../api";
 import { UNREACHABLE, detailOf } from "../../labels";
+import { PlanActions } from "./PlanActions";
 
 type Props = {
   artifact: ArtifactDetail;
@@ -48,6 +49,9 @@ export function PublishPanel({ artifact, onOpenApproval, onOpenRun }: Props) {
     }
   }
 
+  if (artifact.kind === "implementation-plan") {
+    return <PlanActions artifact={artifact} onOpenApproval={onOpenApproval} />;
+  }
   if (artifact.kind !== "brd") return null;
   return (
     <section className="panel" aria-label="Publishing">

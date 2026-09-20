@@ -3,6 +3,7 @@ import { useState } from "react";
 import { HealthBadge } from "./components/HealthBadge";
 import { SessionControl } from "./components/SessionControl";
 import { WorkspaceSwitcher } from "./components/WorkspaceSwitcher";
+import { StoryContext } from "./features/context/StoryContext";
 import { GitHubPanel } from "./features/github/GitHubPanel";
 import { ApprovalsPanel } from "./features/approvals/ApprovalsPanel";
 import { ArtifactsPanel } from "./features/artifacts/ArtifactsPanel";
@@ -84,9 +85,21 @@ export function App() {
         />
       );
     }
+    if (section === "github" && selected && route.story) {
+      return (
+        <StoryContext
+          key={`${selected.id}-${route.story}`}
+          workspace={selected}
+          number={Number(route.story)}
+          onBack={() => navigate({ section: "github" })}
+          onOpenRun={(id) => navigate({ section: "runs", run: id })}
+        />
+      );
+    }
     if (section === "github" && selected) {
       return (
         <GitHubPanel
+          onOpenStory={(n) => navigate({ section: "github", story: String(n) })}
           key={selected.id}
           workspace={selected}
           onOpenDocument={(path) => navigate({ section: "inbox", doc: path })}
