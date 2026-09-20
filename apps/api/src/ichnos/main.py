@@ -13,6 +13,7 @@ from ichnos.api.artifacts import router as artifacts_router
 from ichnos.api.config import router as config_router
 from ichnos.api.context import router as context_router
 from ichnos.api.decisions import router as decisions_router
+from ichnos.api.doctor import router as doctor_router
 from ichnos.api.health import router as health_router
 from ichnos.api.implementation import router as implementation_router
 from ichnos.api.intake import router as intake_router
@@ -87,6 +88,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(trace_router)
     app.include_router(answers_router)
     app.include_router(metrics_router)
+    app.include_router(doctor_router)
     return app
 
 

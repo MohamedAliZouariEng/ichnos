@@ -136,3 +136,7 @@ metrics: ## Print the release metrics of the running stack
 .PHONY: retrieval-eval
 retrieval-eval: ## Compare basic and link-expanded retrieval on the demo questions
 > docker compose exec -T api /app/.venv/bin/python -m ichnos.evaluate.retrieval
+
+.PHONY: doctor
+doctor: ## Check the setup of the running stack: what is wrong and how to fix it
+> docker compose exec -T api /app/.venv/bin/python -m ichnos.doctor

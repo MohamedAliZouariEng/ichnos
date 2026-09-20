@@ -289,6 +289,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/health/checks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Setup Checks
+         * @description Database, migrations, data folder, GitHub token and repositories, model, approvals.
+         */
+        get: operations["getSetupChecks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/runs/{run_id}": {
         parameters: {
             query?: never;
@@ -1086,6 +1106,17 @@ export interface components {
             title: string | null;
             /** Trust Tier */
             trust_tier: string;
+        };
+        /** CheckRead */
+        CheckRead: {
+            /** Fix */
+            fix: string;
+            /** Message */
+            message: string;
+            /** Name */
+            name: string;
+            /** Status */
+            status: string;
         };
         /** ConfirmationRead */
         ConfirmationRead: {
@@ -2588,6 +2619,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ModelCheck"];
+                };
+            };
+        };
+    };
+    getSetupChecks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckRead"][];
                 };
             };
         };

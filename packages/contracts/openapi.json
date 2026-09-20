@@ -758,6 +758,34 @@
         "title": "BrdRead",
         "type": "object"
       },
+      "CheckRead": {
+        "properties": {
+          "fix": {
+            "title": "Fix",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "status",
+          "message",
+          "fix"
+        ],
+        "title": "CheckRead",
+        "type": "object"
+      },
       "ConfirmationRead": {
         "properties": {
           "confirmed_by": {
@@ -4058,6 +4086,32 @@
         "summary": "Check Model",
         "tags": [
           "config"
+        ]
+      }
+    },
+    "/api/health/checks": {
+      "get": {
+        "description": "Database, migrations, data folder, GitHub token and repositories, model, approvals.",
+        "operationId": "getSetupChecks",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CheckRead"
+                  },
+                  "title": "Response Getsetupchecks",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Setup Checks",
+        "tags": [
+          "health"
         ]
       }
     },
