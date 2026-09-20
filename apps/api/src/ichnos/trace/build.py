@@ -295,12 +295,15 @@ def build_trace(session: Session, workspace: Workspace, brd_path: str) -> Trace:
     if doc is None or doc.doc_type != "BRD":
         raise TraceError(f"{brd_path} is not a synced BRD in this workspace.")
     b = _Builder(session, workspace)
+    parents = set(b.parent.values())  # an Issue with children is an Epic, not a Story
     stories = sorted(
         (
             i
             for i in b.items.values()
             if i.item_type != "pull_request"
             and i.state_reason != "not_planned"
+            and "type:epic" not in (i.labels or [])
+            and i.number not in parents
             and brd_path in (i.body or "")
         ),
         key=lambda i: i.number,

@@ -213,3 +213,18 @@ def test_rows_are_numbered_and_the_hash_is_stable(factory: sessionmaker[Session]
     assert first.rows[0].id == "T1" and first.hash == second.hash and len(first.hash) == 64
     with pytest.raises(TraceError, match="not a synced BRD"):
         trace(factory, "docs/specs/missing/brd.md")
+
+
+def test_epics_are_not_traced_as_stories(factory: sessionmaker[Session]) -> None:
+    """Epics also list requirements and name the BRD; the real quire-demo Epic #6 did both."""
+    with factory() as session:
+        labelled = item(40, "Labelled Epic", story(40, "R-01", "AC-40"))
+        labelled.labels = ["type:epic"]
+        parent = item(41, "Epic with a child", story(41, "R-01", "AC-41"))
+        child = item(42, "Child Story", story(42, "R-01", "AC-42"))
+        session.add_all([labelled, parent, child, link(("issue", "42"), ("issue", "41"), "parent")])
+        session.commit()
+    r1 = find(trace(factory).rows, "requirement", "R-01")
+    stories = [s.key for epic in r1.children for s in epic.children]
+    assert "#40" not in stories and "#41" not in stories
+    assert stories.count("#42") == 1 and "#7" in stories
