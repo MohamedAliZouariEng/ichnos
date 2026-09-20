@@ -248,5 +248,23 @@ def retrieve_for_question(
                     flags=["inferred"] if inferred else [],
                     excerpt="; ".join([*evidence, f"status: {test_row.status}"]),
                 )
+            brd_doc = docs.get(path)  # the trace's own heading, Stories and PRs, as sources
+            if brd_doc is not None:
+                add_document(brd_doc, requirement.key, requirement.title)
+            for _, item_row in _walk([requirement]):
+                if item_row.level not in ("story", "pull_request"):
+                    continue
+                traced = items.get(item_row.key.split("#")[-1])
+                if traced is not None:
+                    sources.add(
+                        f"item:{traced.number}",
+                        kind=traced.item_type,
+                        title=traced.title,
+                        locator=f"#{traced.number}",
+                        url=traced.url,
+                        trust="github",
+                        flags=_item_flags(traced),
+                        excerpt=f"{traced.title}\n\n{traced.body or ''}",
+                    )
     result.sources = sources.items
     return result

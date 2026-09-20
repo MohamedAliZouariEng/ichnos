@@ -31,3 +31,14 @@ def test_links_and_traces_add_what_full_text_misses(factory: sessionmaker[Sessio
     assert "test:tests/test_invitations.py" in resending.expanded
     assert "test:tests/test_invitations.py" not in resending.basic
     assert recall(results, "basic") < recall(results, "expanded") == 1.0
+
+
+def test_a_trace_brings_its_story_and_pull_request(factory: sessionmaker[Session]) -> None:
+    """Story #8 and PR #20 have no full-text chunk in the fixture: only the trace reaches them."""
+    test_answer_retrieval.seed(factory)
+    case = ("Where is resending tested?", ["issue:Resend invalidates", "pull_request:Resend"])
+    with factory() as session:
+        ws = session.get(Workspace, "ws")
+        assert ws is not None
+        (result,) = compare(session, ws, [case])
+    assert result.basic == [] and result.expanded == case[1]
