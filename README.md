@@ -18,7 +18,7 @@ You need Docker with Compose v2, the GitHub CLI signed in (`gh auth login`), and
 4. Start everything: `make demo`. It checks your setup, starts Ichnos, creates the workspace and runs the first sync.
 5. Open http://localhost:8765, go to **Questions** and ask: *What did the onboarding meeting decide about invitation links?*
 
-Ichnos writes to your repository only after you approve the exact change. If something fails, `make doctor` says what is wrong and how to fix it.
+Ichnos writes to your repository only after you approve the exact change. If something fails, `make doctor` says what is wrong and how to fix it, and the [troubleshooting guide](docs/project/troubleshooting.md) covers the rest.
 
 ## Principles
 
