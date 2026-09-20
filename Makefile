@@ -128,3 +128,7 @@ e2e: ## Check the Phase 2 and 3 exit criteria against the running stack (make up
 > python3 scripts/e2e_sync.py
 > python3 scripts/e2e_requirements.py --bundle /tmp/ichnos-e2e-bundle
 > uv run --no-project --with-requirements scripts/requirements-docs.txt python scripts/validate_okf.py /tmp/ichnos-e2e-bundle --strict
+
+.PHONY: metrics
+metrics: ## Print the release metrics of the running stack
+> docker compose exec -T api /app/.venv/bin/python -m ichnos.evaluate

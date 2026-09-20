@@ -17,6 +17,7 @@ from ichnos.api.health import router as health_router
 from ichnos.api.implementation import router as implementation_router
 from ichnos.api.intake import router as intake_router
 from ichnos.api.knowledge import router as knowledge_router
+from ichnos.api.metrics import router as metrics_router
 from ichnos.api.planning import router as planning_router
 from ichnos.api.publish import router as publish_router
 from ichnos.api.runs import router as runs_router
@@ -85,6 +86,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(implementation_router)
     app.include_router(trace_router)
     app.include_router(answers_router)
+    app.include_router(metrics_router)
     return app
 
 

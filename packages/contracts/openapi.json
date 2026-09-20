@@ -1478,6 +1478,76 @@
         "title": "LinkRead",
         "type": "object"
       },
+      "MetricRead": {
+        "properties": {
+          "denominator": {
+            "title": "Denominator",
+            "type": "integer"
+          },
+          "details": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Details",
+            "type": "array"
+          },
+          "higher_is_better": {
+            "title": "Higher Is Better",
+            "type": "boolean"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "numerator": {
+            "title": "Numerator",
+            "type": "integer"
+          },
+          "passed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Passed"
+          },
+          "threshold": {
+            "title": "Threshold",
+            "type": "number"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "numerator",
+          "denominator",
+          "threshold",
+          "higher_is_better",
+          "value",
+          "passed",
+          "details"
+        ],
+        "title": "MetricRead",
+        "type": "object"
+      },
       "ModelCheck": {
         "properties": {
           "latency_ms": {
@@ -4963,6 +5033,56 @@
         "summary": "List Links",
         "tags": [
           "knowledge"
+        ]
+      }
+    },
+    "/api/workspaces/{workspace_id}/metrics": {
+      "get": {
+        "description": "Linked Stories, valid answers, testable criteria and unapproved writes, by code.",
+        "operationId": "getMetrics",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MetricRead"
+                  },
+                  "title": "Response Getmetrics",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Workspace not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Metrics",
+        "tags": [
+          "evaluation"
         ]
       }
     },
