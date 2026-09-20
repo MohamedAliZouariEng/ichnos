@@ -150,3 +150,8 @@ demo: ## Check the setup, start Ichnos, create the demo workspace and sync it
 .PHONY: ac-review
 ac-review: ## One recorded model review of acceptance criteria beside the code rules
 > docker compose exec -T api /app/.venv/bin/python -m ichnos.evaluate.review
+
+.PHONY: up-release
+up-release: ## Pull and start a published release instead of building: make up-release VERSION=0.1.0
+> ICHNOS_VERSION=$(VERSION) docker compose -f docker-compose.yml -f docker-compose.release.yml pull api web
+> ICHNOS_VERSION=$(VERSION) docker compose -f docker-compose.yml -f docker-compose.release.yml up --no-build --detach --wait
