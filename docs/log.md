@@ -1,6 +1,7 @@
 # Documentation Update Log
 
 ## 2026-09-20
+* **Creation**: Added [ADR-0025](/adr/0025-evaluation-metrics.md) and [ADR-0026](/adr/0026-releases.md).
 * **Update**: Added traceability and questions to the [self-hosting guide](/project/self-hosting.md), and trace and answer tests to the [development guide](/project/development.md).
 * **Update**: Aligned the [technical specification](/specs/ichnos-mvp/techspec.md) with Phase 6: API scope.
 * **Creation**: Added [ADR-0022](/adr/0022-traceability.md), [ADR-0023](/adr/0023-trace-validation-and-confirmation.md) and [ADR-0024](/adr/0024-grounded-answers.md).
