@@ -106,3 +106,18 @@ def test_heading_anchors_match_github() -> None:
     assert github_anchor("R-01") == "r-01"
     assert github_anchor("Out of scope") == "out-of-scope"
     assert github_anchor("What's next?") == "whats-next"
+
+
+def test_a_trace_source_carries_its_evidence_trail(factory: sessionmaker[Session]) -> None:
+    seed(factory)
+    result = ask(factory, "Where is resending tested?")
+    trace = next(s for s in result.sources if s.kind == "trace")
+    assert [link["label"] for link in trace.links] == [
+        "Workspace onboarding sync",  # the decision the BRD cites
+        "BRD R-02",
+        "Story #8",
+        "Test tests/test_invitations.py::test_resend",
+        "Pull request #20",
+        "Test tests/test_invitations.py",
+    ]
+    assert trace.links[0]["url"].endswith(NOTE) and trace.links[1]["url"].endswith("#r-02")

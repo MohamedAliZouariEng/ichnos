@@ -15,6 +15,7 @@ const ANSWER = {
   statements: [{ text: "The meeting decided that links expire after 7 days.", cites: ["S8"] }],
   gaps: ["No passing test was found among the sources."],
   cited: ["S8"],
+  trail: [{ label: "Workspace onboarding sync", url: "https://github.com/o/r/blob/c/docs/meetings/note.md" }],
   sources: [
     { id: "S8", kind: "document", title: "Workspace onboarding sync",
       locator: "docs/meetings/note.md#decisions", url: "https://github.com/o/r/blob/c/docs/meetings/note.md#decisions",
@@ -43,6 +44,8 @@ describe("QuestionsPanel", () => {
     );
     expect(within(screen.getByRole("region", { name: "Gaps" })).getByText(/No passing test/)).toBeInTheDocument();
     expect(within(screen.getByRole("region", { name: "Sources" })).getByText("cited")).toBeInTheDocument();
+    const trail = screen.getByRole("region", { name: "Evidence trail" });
+    expect(within(trail).getByRole("link", { name: "Workspace onboarding sync" })).toBeInTheDocument();
     expect(onOpenAnswer).toHaveBeenCalledWith("an-1");
   });
 

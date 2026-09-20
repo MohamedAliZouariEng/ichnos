@@ -40,6 +40,11 @@ class StatementRead(BaseModel):
     cites: list[str]
 
 
+class TrailLinkRead(BaseModel):
+    label: str
+    url: str
+
+
 class AnswerRead(BaseModel):
     id: str
     question: str
@@ -47,6 +52,7 @@ class AnswerRead(BaseModel):
     gaps: list[str]
     cited: list[str]
     sources: list[AnswerSourceRead]
+    trail: list[TrailLinkRead]
     model: str
     tokens: int
     created_at: dt.datetime
@@ -68,6 +74,7 @@ def _read(row: StoredAnswer) -> AnswerRead:
         statements=[StatementRead(**s) for s in data.get("statements", [])],
         gaps=list(data.get("gaps", [])),
         cited=list(data.get("cited", [])),
+        trail=[TrailLinkRead(**t) for t in data.get("trail", [])],
         sources=[AnswerSourceRead(**s) for s in data.get("sources", [])],
         model=row.model,
         tokens=row.tokens,

@@ -123,3 +123,26 @@ def test_no_sources_means_no_model_call() -> None:
     empty = Retrieved(question="What about SSO?", keywords=["sso"], sources=[])
     answer, _, usage = draft_answer(Refusing(), empty)  # type: ignore[arg-type]
     assert answer.gaps == [NO_EVIDENCE] and usage.calls == 0
+
+
+def test_citing_a_trace_attaches_its_trail_once() -> None:
+    trail = [
+        {"label": "Meeting", "url": "https://example.test/note"},
+        {"label": "BRD R-01", "url": "https://example.test/brd#r-01"},
+    ]
+    trace = AnswerSource(
+        "S5", "trace", "Trace of R-01", "trace of brd#r-01", None, "derived", [], "x", trail
+    )
+    retrieved = Retrieved(
+        question=RETRIEVED.question, keywords=[], sources=[*RETRIEVED.sources, trace]
+    )
+    answer, _ = enforce_answer(
+        draft(
+            statements=[
+                {"text": "R-01 is approved.", "cites": ["S5"]},
+                {"text": "It came from the meeting.", "cites": ["S5", "S1"]},
+            ]
+        ),
+        retrieved,
+    )
+    assert answer.trail == trail  # both statements cite S5; the trail appears once

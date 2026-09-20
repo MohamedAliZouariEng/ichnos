@@ -42,6 +42,20 @@ function AnswerView({ answer }: { answer: AnswerRead }) {
           ))}
         </ul>
       </section>
+      {answer.trail.length > 0 && (
+        <section className="panel" aria-label="Evidence trail">
+          <h3>Evidence trail</h3>
+          <ol className="trail">
+            {answer.trail.map((link) => (
+              <li key={link.url}>
+                <a href={link.url} target="_blank" rel="noopener noreferrer">
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
       {answer.gaps.length > 0 && (
         <section className="notice notice--warn" aria-label="Gaps">
           <strong>Gaps</strong>

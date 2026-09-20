@@ -33,6 +33,7 @@ Rules:
 - Prefer sources verified by a person; say when a source is unverified, stale or inferred.
 - Say that something is tested only if a test source says its status is passing.
 - Put in gaps every part of the question the sources do not answer, and any disagreement.
+- When asked for evidence, cite the original decision and requirement as well as the tests.
 """
 
 
@@ -59,6 +60,7 @@ class Answer(BaseModel):
     gaps: list[str]
     cited: list[str]
     sources: list[dict[str, Any]]
+    trail: list[dict[str, str]] = Field(default_factory=list)
 
 
 def _clean(value: str) -> str:
@@ -107,12 +109,18 @@ def enforce_answer(draft: AnswerDraft, retrieved: Retrieved) -> tuple[Answer, li
     passing = any(by_id[c].kind == "test" and "status: passing" in by_id[c].excerpt for c in cited)
     if asks_about_tests and not passing:
         gaps.append(NO_PASSING_TEST)
+    trail: list[dict[str, str]] = []
+    for source_id in cited:  # the evidence trail of every cited trace, built by code
+        for link in by_id[source_id].links:
+            if link["url"] not in {t["url"] for t in trail}:
+                trail.append(link)
     answer = Answer(
         question=retrieved.question,
         statements=statements,
         gaps=list(dict.fromkeys(gaps)),
         cited=cited,
         sources=[asdict(source) for source in retrieved.sources],
+        trail=trail,
     )
     return answer, notes
 

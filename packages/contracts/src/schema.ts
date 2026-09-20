@@ -849,6 +849,8 @@ export interface components {
             statements: components["schemas"]["StatementRead"][];
             /** Tokens */
             tokens: number;
+            /** Trail */
+            trail: components["schemas"]["TrailLinkRead"][];
         };
         /** AnswerSourceRead */
         AnswerSourceRead: {
@@ -1646,6 +1648,13 @@ export interface components {
             title: string;
             /** Url */
             url: string | null;
+        };
+        /** TrailLinkRead */
+        TrailLinkRead: {
+            /** Label */
+            label: string;
+            /** Url */
+            url: string;
         };
         /** ValidateRequest */
         ValidateRequest: {

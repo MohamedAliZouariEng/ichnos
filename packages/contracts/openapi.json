@@ -51,6 +51,13 @@
           "tokens": {
             "title": "Tokens",
             "type": "integer"
+          },
+          "trail": {
+            "items": {
+              "$ref": "#/components/schemas/TrailLinkRead"
+            },
+            "title": "Trail",
+            "type": "array"
           }
         },
         "required": [
@@ -60,6 +67,7 @@
           "gaps",
           "cited",
           "sources",
+          "trail",
           "model",
           "tokens",
           "created_at"
@@ -2549,6 +2557,24 @@
           "children"
         ],
         "title": "TraceRowRead",
+        "type": "object"
+      },
+      "TrailLinkRead": {
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "url"
+        ],
+        "title": "TrailLinkRead",
         "type": "object"
       },
       "ValidateRequest": {

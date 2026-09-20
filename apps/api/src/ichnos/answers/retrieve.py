@@ -1,7 +1,8 @@
 """Retrieval for grounded answers (ADR-0024): numbered sources with links, trust and flags.
 
 Reuses the full-text index, adds what matching BRDs cite and the traces of their matching
-requirements, so an answer can reach from a requirement to the test that checks it.
+requirements, so an answer can reach from a decision to the test that checks it. A trace
+source carries its evidence trail: decision, requirement, Story, pull request and tests.
 """
 
 import datetime as dt
@@ -36,6 +37,7 @@ class AnswerSource:
     trust: str
     flags: list[str]
     excerpt: str
+    links: list[dict[str, str]] = field(default_factory=list)
 
 
 @dataclass
@@ -79,6 +81,25 @@ def _trace_text(requirement: TraceRow) -> str:
     return "\n".join(lines)[:MAX_EXCERPT]
 
 
+def _label(row: TraceRow) -> str:
+    if row.level == "story":
+        return f"Story {row.key}"
+    if row.level == "pull_request":
+        return row.key.replace("PR ", "Pull request ")
+    return f"Test {row.key}"
+
+
+def _trail(requirement: TraceRow, decisions: list[dict[str, str]]) -> list[dict[str, str]]:
+    """Decision, requirement, Story, pull request and tests, each with its link."""
+    links = list(decisions)
+    if requirement.url:
+        links.append({"label": f"BRD {requirement.key}", "url": requirement.url})
+    for _, row in _walk([requirement]):
+        if row.level in ("story", "pull_request", "test") and row.url:
+            links.append({"label": _label(row), "url": row.url})
+    return links
+
+
 class _Sources:
     def __init__(self) -> None:
         self.items: list[AnswerSource] = []
@@ -109,6 +130,9 @@ def retrieve_for_question(
     }
     sources = _Sources()
 
+    def doc_url(doc: Document, suffix: str = "") -> str:
+        return f"{repo_url}/blob/{doc.commit_sha}/{doc.path}{suffix}"
+
     def add_document(doc: Document, heading: str | None, excerpt: str) -> None:
         anchor = github_anchor(heading) if heading and heading != doc.title else ""
         suffix = f"#{anchor}" if anchor else ""
@@ -117,7 +141,7 @@ def retrieve_for_question(
             kind="document",
             title=doc.title or doc.path,
             locator=f"{doc.path}{suffix}",
-            url=f"{repo_url}/blob/{doc.commit_sha}/{doc.path}{suffix}",
+            url=doc_url(doc, suffix),
             trust=doc.trust_tier,
             flags=_doc_flags(doc, today),
             excerpt=excerpt,
@@ -171,6 +195,7 @@ def retrieve_for_question(
 
     confirmed = confirmed_links(session, ws)
     for path, headings in brds.items():
+        decisions: list[dict[str, str]] = []
         for link in session.scalars(
             select(Link).where(
                 Link.workspace_id == ws,
@@ -183,6 +208,7 @@ def retrieve_for_question(
             cited = docs.get(link.target_key)
             if cited is not None:
                 add_document(cited, None, cited.body)
+                decisions.append({"label": cited.title or cited.path, "url": doc_url(cited)})
         trace = build_trace(session, workspace, path)
         for requirement in trace.rows:
             statement = requirement.title.lower()
@@ -198,6 +224,7 @@ def retrieve_for_question(
                 trust="derived",
                 flags=[],
                 excerpt=_trace_text(requirement),
+                links=_trail(requirement, decisions),
             )
             for _, test_row in _walk([requirement]):
                 if test_row.level != "test":
@@ -205,6 +232,7 @@ def retrieve_for_question(
                 inferred = any(
                     e.origin == "inferred" and e.link not in confirmed for e in test_row.evidence
                 )
+                evidence = [e.text for e in test_row.evidence]
                 sources.add(
                     f"test:{test_row.key}",
                     kind="test",
@@ -213,9 +241,7 @@ def retrieve_for_question(
                     url=test_row.url,
                     trust="repository",
                     flags=["inferred"] if inferred else [],
-                    excerpt="; ".join(
-                        [e.text for e in test_row.evidence] + [f"status: {test_row.status}"]
-                    ),
+                    excerpt="; ".join([*evidence, f"status: {test_row.status}"]),
                 )
     result.sources = sources.items
     return result
