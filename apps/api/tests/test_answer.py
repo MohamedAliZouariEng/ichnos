@@ -146,3 +146,18 @@ def test_citing_a_trace_attaches_its_trail_once() -> None:
         retrieved,
     )
     assert answer.trail == trail  # both statements cite S5; the trail appears once
+
+
+def test_distinct_tests_in_one_file_both_stay_in_the_trail() -> None:
+    same = "https://example.test/tests/test_invitations.py"
+    trail = [
+        {"label": "Test tests/test_invitations.py::test_expired", "url": same},
+        {"label": "Test tests/test_invitations.py::test_fresh", "url": same},
+        {"label": "Test tests/test_invitations.py::test_expired", "url": same},
+    ]
+    trace = AnswerSource(
+        "S5", "trace", "Trace", "trace of brd#r-01", None, "derived", [], "x", trail
+    )
+    retrieved = Retrieved(question="Where?", keywords=[], sources=[trace])
+    answer, _ = enforce_answer(draft(statements=[{"text": "Tested.", "cites": ["S5"]}]), retrieved)
+    assert answer.trail == trail[:2]

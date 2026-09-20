@@ -112,7 +112,7 @@ def enforce_answer(draft: AnswerDraft, retrieved: Retrieved) -> tuple[Answer, li
     trail: list[dict[str, str]] = []
     for source_id in cited:  # the evidence trail of every cited trace, built by code
         for link in by_id[source_id].links:
-            if link["url"] not in {t["url"] for t in trail}:
+            if link not in trail:  # distinct tests in one file keep their own entries
                 trail.append(link)
     answer = Answer(
         question=retrieved.question,

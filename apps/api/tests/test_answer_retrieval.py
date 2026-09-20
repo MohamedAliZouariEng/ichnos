@@ -116,8 +116,50 @@ def test_a_trace_source_carries_its_evidence_trail(factory: sessionmaker[Session
         "Workspace onboarding sync",  # the decision the BRD cites
         "BRD R-02",
         "Story #8",
-        "Test tests/test_invitations.py::test_resend",
         "Pull request #20",
+        "Test tests/test_invitations.py::test_resend",
         "Test tests/test_invitations.py",
     ]
     assert trace.links[0]["url"].endswith(NOTE) and trace.links[1]["url"].endswith("#r-02")
+
+
+def test_the_trail_keeps_only_decisions_and_distinct_tests(factory: sessionmaker[Session]) -> None:
+    seed(factory)
+    glossary = "docs/project/glossary.md"
+    with factory() as session:
+        session.add(
+            Document(
+                workspace_id="ws",
+                path=glossary,
+                blob_sha="g" * 40,
+                commit_sha="c" * 40,
+                kind="concept",
+                doc_type="Glossary",
+                title="Onboarding glossary",
+                trust_tier="human_verified",
+                frontmatter={},
+                body="Invitation: a link.",
+                findings=[],
+            )
+        )
+        session.add(
+            Link(
+                workspace_id="ws",
+                source_kind="document",
+                source_key=BRD,
+                target_kind="document",
+                target_key=glossary,
+                relation="cites",
+                origin="explicit",
+                evidence="sources",
+                confidence=1.0,
+                resolved=True,
+            )
+        )
+        session.commit()
+    result = ask(factory, "Where is resending tested?")
+    trace = next(s for s in result.sources if s.kind == "trace")
+    labels = [link["label"] for link in trace.links]
+    assert "Onboarding glossary" not in labels  # a source, but not a decision
+    assert any(s.locator == glossary for s in result.sources)
+    assert labels[0] == "Workspace onboarding sync"
