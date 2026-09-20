@@ -114,7 +114,12 @@ class _Sources:
 
 
 def retrieve_for_question(
-    session: Session, workspace: Workspace, question: str, *, today: dt.date | None = None
+    session: Session,
+    workspace: Workspace,
+    question: str,
+    *,
+    today: dt.date | None = None,
+    expand: bool = True,
 ) -> Retrieved:
     today = today or dt.date.today()
     words = keywords([question])
@@ -194,7 +199,7 @@ def retrieve_for_question(
         per_file[row.source_key] += 1
 
     confirmed = confirmed_links(session, ws)
-    for path, headings in brds.items():
+    for path, headings in brds.items() if expand else []:  # expand=False: full text only
         decisions: list[dict[str, str]] = []
         for link in session.scalars(
             select(Link).where(

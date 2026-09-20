@@ -132,3 +132,7 @@ e2e: ## Check the Phase 2 and 3 exit criteria against the running stack (make up
 .PHONY: metrics
 metrics: ## Print the release metrics of the running stack
 > docker compose exec -T api /app/.venv/bin/python -m ichnos.evaluate
+
+.PHONY: retrieval-eval
+retrieval-eval: ## Compare basic and link-expanded retrieval on the demo questions
+> docker compose exec -T api /app/.venv/bin/python -m ichnos.evaluate.retrieval
