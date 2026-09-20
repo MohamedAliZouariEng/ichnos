@@ -2,6 +2,12 @@
 
 All notable changes to Ichnos are recorded here. Versions follow semantic versioning.
 
+## [Unreleased]
+
+### Added
+
+- **Quick tips.** A short introduction to each part of Ichnos, one card at a time. It opens by itself the first time the app is opened in a browser, and again whenever you choose **Quick tips** in the top bar. It is remembered in your browser only; nothing is sent anywhere.
+
 ## [0.1.0] - 2026-09-20
 
 The first release: a self-hosted assistant that keeps a repository's knowledge as Open Knowledge Format (OKF) concepts, drafts requirements and plans with a model, and writes to GitHub only after a person approves the exact change.

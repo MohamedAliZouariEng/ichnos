@@ -182,3 +182,9 @@ Ichnos reads a repository freely, but it writes to GitHub only after a person ap
 **Questions.** **Questions** answers questions about the repository. The question and the retrieved sources go to the configured model; nothing is written to GitHub. Every statement cites numbered sources, statements without a valid source are dropped, and the answer lists its gaps: what the sources do not show, weak sources it relied on, and tests asked about but not found passing. When an answer cites a trace, its **Evidence trail** links the decision, the BRD heading, the Story, the pull request and the tests, built by code rather than by the model ([ADR-0024](/adr/0024-grounded-answers.md)). Answers are kept in Ichnos.
 
 **Test evidence in your repository.** Traces are most useful when pull requests name the tests for each acceptance criterion, for example `| AC-01: … | Done | tests/test_invitations.py::test_expiry |`, and when CI runs on pull requests. Draft pull requests that Ichnos opens already contain this table.
+
+## Quick tips
+
+The first time Ichnos is opened in a browser, a short introduction appears: one card for each part of the app, in the order you use them. Choose **Skip** to leave it, or walk through with **Next**; it does not appear again.
+
+To see it later, choose **Quick tips** at the top of the page. Whether you have seen it is kept in that browser only, so it appears again in a different browser or after clearing site data, and nothing about it is sent to the API or to GitHub.
