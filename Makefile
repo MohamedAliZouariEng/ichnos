@@ -140,3 +140,9 @@ retrieval-eval: ## Compare basic and link-expanded retrieval on the demo questio
 .PHONY: doctor
 doctor: ## Check the setup of the running stack: what is wrong and how to fix it
 > docker compose exec -T api /app/.venv/bin/python -m ichnos.doctor
+
+.PHONY: demo-repo demo
+demo-repo: ## Create your own copy of the Quire demo repository with gh
+> bash scripts/demo-repo.sh
+demo: ## Check the setup, start Ichnos, create the demo workspace and sync it
+> bash scripts/demo.sh

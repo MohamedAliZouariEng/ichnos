@@ -10,14 +10,15 @@ Pre-alpha. **Phase 3 (requirements workflow)** is complete: from a meeting note,
 
 ## Quick start
 
-```bash
-git clone https://github.com/MohamedAliZouariEng/ichnos.git
-cd ichnos
-cp .env.example .env
-docker compose up --build --wait
-```
+You need Docker with Compose v2, the GitHub CLI signed in (`gh auth login`), and an API key for a model (Gemini works; the [self-hosting guide](docs/project/self-hosting.md) lists others). It takes about 20 minutes.
 
-Open http://localhost:8765. See the [self-hosting guide](docs/project/self-hosting.md) to connect GitHub, and the [development guide](docs/project/development.md) to contribute.
+1. Clone Ichnos: `git clone https://github.com/MohamedAliZouariEng/ichnos && cd ichnos`
+2. Create your own copy of the demo repository: `make demo-repo`. It prints which token to create next.
+3. Create a fine-grained GitHub token for that repository only, with **Contents**, **Issues** and **Pull requests** set to read and write. In `.env`, set `ICHNOS_GITHUB_TOKEN`, the model settings (`ICHNOS_LLM_PROVIDER`, `ICHNOS_LLM_BASE_URL`, `ICHNOS_LLM_MODEL`, `ICHNOS_LLM_API_KEY`) and an `ICHNOS_APPROVER_PASSWORD` of your choice.
+4. Start everything: `make demo`. It checks your setup, starts Ichnos, creates the workspace and runs the first sync.
+5. Open http://localhost:8765, go to **Questions** and ask: *What did the onboarding meeting decide about invitation links?*
+
+Ichnos writes to your repository only after you approve the exact change. If something fails, `make doctor` says what is wrong and how to fix it.
 
 ## Principles
 
