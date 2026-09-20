@@ -12,7 +12,11 @@ const FILTERS: { id: Filter; label: string }[] = [
   { id: "pull_request", label: "Pull requests" },
 ];
 
-type Props = { workspace: Workspace; onOpenDocument: (path: string) => void };
+type Props = {
+  workspace: Workspace;
+  onOpenDocument: (path: string) => void;
+  onOpenStory?: ((number: number) => void) | undefined;
+};
 
 function stateOf(item: GitHubItem): { label: string; tone: string } {
   if (item.type === "pull_request" && item.merged_at) return { label: "merged", tone: "info" };
@@ -70,7 +74,7 @@ function ItemLinks({ workspaceId, item, onOpenDocument }: ItemLinksProps) {
   );
 }
 
-export function GitHubPanel({ workspace, onOpenDocument }: Props) {
+export function GitHubPanel({ workspace, onOpenDocument, onOpenStory }: Props) {
   const [items, setItems] = useState<GitHubItem[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [filter, setFilter] = useState<Filter>("all");
@@ -158,6 +162,11 @@ export function GitHubPanel({ workspace, onOpenDocument }: Props) {
                     >
                       {open ? "Hide links" : "Show links"}
                     </button>
+                    {item.type !== "pull_request" && onOpenStory && (
+                      <button type="button" className="link" onClick={() => onOpenStory(item.number)}>
+                        Context pack
+                      </button>
+                    )}
                   </div>
                   {open && (
                     <ItemLinks

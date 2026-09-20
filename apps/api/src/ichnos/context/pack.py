@@ -255,8 +255,10 @@ def build_pack(
 ) -> ContextPack:
     b = _Builder(session, workspace, today or dt.date.today())
     story = b.item(number)
-    if story is None or story.item_type == "pull_request":
+    if story is None:
         raise PackError(f"Issue #{number} is not synced in this workspace.")
+    if story.item_type == "pull_request":
+        raise PackError(f"#{number} is a pull request; context packs are built for Issues.")
     b.add_item(story, "story", "the Story being implemented")
 
     # Parent Epic, then its Initiative.

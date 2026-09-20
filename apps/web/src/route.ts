@@ -7,6 +7,7 @@ export type Route = {
   run?: string | undefined;
   artifact?: string | undefined;
   approval?: string | undefined;
+  story?: string | undefined;
 };
 
 const SECTIONS: readonly Section[] = [
@@ -28,6 +29,7 @@ export function parseRoute(hash: string): Route {
     run: params.get("run") ?? undefined,
     artifact: params.get("artifact") ?? undefined,
     approval: params.get("approval") ?? undefined,
+    story: params.get("story") ?? undefined,
   };
 }
 
@@ -37,6 +39,7 @@ export function routeHash(route: Route): string {
   if (route.run) params.set("run", route.run);
   if (route.artifact) params.set("artifact", route.artifact);
   if (route.approval) params.set("approval", route.approval);
+  if (route.story) params.set("story", route.story);
   const query = params.toString();
   return `#/${route.section}${query ? `?${query}` : ""}`;
 }
